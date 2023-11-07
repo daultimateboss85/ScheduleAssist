@@ -1,0 +1,74 @@
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+
+# Create your models here.
+class User(AbstractUser):
+    pass
+
+
+
+
+class Tasks(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tasks")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    
+    def __str__(self):
+        return self.title
+
+class ScheduleCalendar(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="schedule_cal")
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.owner}'s {self.name}"
+
+class MiscellanousCalendar(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="misc_cal")
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+class Schedule(models.Model):
+    CHOICES = (
+        ("0", "Master"),
+        ("1", "Monday"),
+        ("2", "Tuesday"),
+        ("3", "Wednesday"),
+        ("4", "Thursay"),
+        ("5", "Friday"),
+        ("6", "Saturday"),
+        ("7", "Sunday")
+    )
+    calendar = models.ForeignKey(ScheduleCalendar,on_delete=models.CASCADE, related_name="day_schedule")
+    name = models.CharField(max_length=255, choices=CHOICES,)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owner")
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.get_name_display()}"
+
+class DailyEvent(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
+
+class MiscEvent(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    calendar = models.ForeignKey(MiscellanousCalendar, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
