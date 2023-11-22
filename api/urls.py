@@ -17,13 +17,15 @@ urlpatterns = [
     #get schedulecalendar, update, delete
     path("ScheduleCalendars/<str:pk>", views.ScheduleCalendarItem.as_view()),
 
+    #get schedules for a calendar, make new ones
+    path("ScheduleCalendars/<str:cal_id>/Schedule", views.ScheduleList.as_view()),
 
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
  
 ]
-    #get schedules for a calendar, make new ones
-"""     path("ScheduleCalendars/<str:pk>/Schedule", views.ScheduleList.as_view()),
+   
+"""     
 
     #get schedule, update, delete
     path("ScheduleCalendars/<str:pk>/Schedule/<str:pk>", views.ScheduleItem.as_view()),  """
