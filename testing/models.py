@@ -5,9 +5,6 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     pass
 
-
-
-
 class Tasks(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tasks")
     title = models.CharField(max_length=255)
@@ -19,21 +16,21 @@ class Tasks(models.Model):
         return self.title
 
 class ScheduleCalendar(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="schedule_cal")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="schedule_cal", blank=True)
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.owner}'s {self.name}"
+        return f"{self.owner}'s {self.name} calendar"
 
 class MiscellanousCalendar(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="misc_cal")
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.name
+        return f"{self.owner}'s {self.name} calendar"
 
 class Schedule(models.Model):
-    CHOICES = (
+    NAME_CHOICES = (
         ("0", "Master"),
         ("1", "Monday"),
         ("2", "Tuesday"),
@@ -43,15 +40,19 @@ class Schedule(models.Model):
         ("6", "Saturday"),
         ("7", "Sunday")
     )
-    calendar = models.ForeignKey(ScheduleCalendar,on_delete=models.CASCADE, related_name="day_schedule")
-    name = models.CharField(max_length=255, choices=CHOICES,)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owner")
+
+    VALUE_CHOICES = ((1,"Main"),(2,"Alt1"),(3,"Alt2"))
+
+    calendar = models.ForeignKey(ScheduleCalendar,on_delete=models.CASCADE, related_name="day_schedule", blank=True)
+    name = models.CharField(max_length=255, choices=NAME_CHOICES)
+    value = models.IntegerField(choices=VALUE_CHOICES, default=1, blank=True)
 
     class Meta:
         ordering = ["name"]
+        unique_together = [["calendar", "name", "value"]]
 
     def __str__(self):
-        return f"{self.get_name_display()}"
+        return f"{self.calendar}'s {self.get_name_display()} schedule"
 
 class DailyEvent(models.Model):
     title = models.CharField(max_length=255)

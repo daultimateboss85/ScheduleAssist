@@ -16,7 +16,7 @@ class ScheduleForm(ModelForm):
 
     def __init__(self,user, *args, **kwargs):
         super(ScheduleForm, self).__init__(*args, **kwargs)
-
+        
         self.fields["calendar"] = forms.ModelChoiceField(queryset=ScheduleCalendar.objects.filter(owner=user))
     
 
