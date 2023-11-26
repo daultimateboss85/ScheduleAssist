@@ -29,14 +29,15 @@ class ScheduleSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        """ try:
-            for object in self.instance:
-                object.name = Schedule.NAME_CHOICES_VALUES[object.name]
+        try:
+            if self.instance:
+                for object in self.instance:
+                    object.name = Schedule.NAME_CHOICES_VALUES[object.name]
 
         except:
-            self.instance.name = Schedule.NAME_CHOICES_VALUES[self.instance.name] 
+            if self.instance:
+                self.instance.name = Schedule.NAME_CHOICES_VALUES[self.instance.name] 
 
- """
 class EventSerializer(serializers.ModelSerializer):
 
     class Meta:

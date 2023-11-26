@@ -23,6 +23,13 @@ urlpatterns = [
     #get schedule, update, delete
     path("Schedule/<str:pk>", views.ScheduleItem.as_view()), 
 
+    #get events in a schedule/ create a new event in schedule
+    path("Schedule/<str:sched_id>/events", views.DailyEventList.as_view()),
+
+    #get event, update, delete
+    path("events/<str:pk>", views.DailyEventItem.as_view()),
+
+
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 

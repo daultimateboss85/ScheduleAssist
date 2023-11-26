@@ -132,8 +132,6 @@ class ScheduleItem(APIView):
         except Schedule.DoesNotExist:
             raise Http404
         
-
-
         if schedule.calendar.owner == request.user:
             return schedule
         
@@ -155,9 +153,10 @@ class ScheduleItem(APIView):
         serializer = ScheduleSerializer(instance=schedule, data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            new_schedule = serializer.save()
+            new_serializer = ScheduleSerializer(new_schedule)
 
-            return Response(serializer.data)
+            return Response(new_serializer.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -176,6 +175,7 @@ class DailyEventList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_schedule(self, request, sched_id):
+      
         #make sure you own schedule
         try:
             schedule = Schedule.objects.get(pk=sched_id)
@@ -184,14 +184,14 @@ class DailyEventList(APIView):
             return Response({"bad request"})
         
         if schedule.calendar.owner == request.user:
-                return schedule
+            return schedule
             
         else:
             return Response({"unauthorized"})
     
     def get(self, request, sched_id):
+       
         schedule = self.get_schedule(request, sched_id)
-
         events = DailyEvent.objects.filter(schedule=schedule)
 
         serializer = EventSerializer(events, many=True)
@@ -209,3 +209,26 @@ class DailyEventList(APIView):
             new_serializer = EventSerializer(new)
             return Response(new_serializer.data)
 
+class DailyEventItem(APIView):
+    """Retrieve, update and delete daily events"""
+
+    def get_object(request, pk):
+        try:
+            event = DailyEvent.objects.get(pk=pk)
+        
+        except DailyEvent.DoesNotExist:
+            raise Http404
+        
+        if event.schedule.calendar.owner == request.user:
+            return event
+        
+        else:
+            return Response({"Bad request"})
+        
+
+    def get(self, request, pk):
+        event = self.get_object(request, pk)
+
+        serializer = EventSerializer(event)
+
+        return Response(serializer.data)
