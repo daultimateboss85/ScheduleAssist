@@ -47,10 +47,11 @@ class ScheduleCalendarItem(APIView):
         try:
             return ScheduleCalendar.objects.filter(owner=request.user).get(pk=pk)
         except ScheduleCalendar.DoesNotExist:
-            raise Http404
+            raise Http404("Bad request")
 
     def get(self, request, pk):
         calendar = self.get_object(request, pk)
+
         serializer = CalendarSerializer(calendar, many=False)
         return Response(serializer.data)
 
@@ -82,7 +83,7 @@ class ScheduleList(APIView):
         try:
             return ScheduleCalendar.objects.filter(owner=request.user).get(pk=cal_id)
         except Schedule.DoesNotExist:
-            raise Http404
+            raise Http404("Bad / Unauthorized request")
 
     def get(self, request, cal_id):
         """
@@ -136,7 +137,7 @@ class ScheduleItem(APIView):
             return schedule
         
         else:
-            return Response({"Denied": "bad request"})
+            raise Http404("Unauthorized request")
             
 
     def get(self, request, pk):
@@ -181,13 +182,13 @@ class DailyEventList(APIView):
             schedule = Schedule.objects.get(pk=sched_id)
             
         except Schedule.DoesNotExist:
-            return Response({"bad request"})
+            raise Http404({"bad request"})
         
         if schedule.calendar.owner == request.user:
             return schedule
             
         else:
-            return Response({"unauthorized"})
+            raise Http404({"bad request"})
     
     def get(self, request, sched_id):
        
@@ -205,7 +206,7 @@ class DailyEventList(APIView):
         serializer = EventSerializer(data=request.data)
 
         if serializer.is_valid():
-            new =   serializer.save(schedule=schedule)
+            new = serializer.save(schedule=schedule)
             new_serializer = EventSerializer(new)
             return Response(new_serializer.data)
 
@@ -223,7 +224,7 @@ class DailyEventItem(APIView):
             return event
         
         else:
-            return Response({"Bad request"})
+            raise Http404({"bad request"})
         
 
     def get(self, request, pk):
