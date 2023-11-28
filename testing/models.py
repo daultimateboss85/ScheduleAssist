@@ -22,15 +22,15 @@ class ScheduleCalendar(models.Model):
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="schedule_cal", blank=True
     )
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return f"{self.owner}'s {self.name} calendar"
 
 
 class MiscellanousCalendar(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="misc_cal")
-    name = models.CharField(max_length=255)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="misc_cal", blank=True)
+    name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return f"{self.owner}'s {self.name} calendar"
@@ -85,7 +85,7 @@ class DailyEvent(models.Model):
     description = models.TextField(blank=True, null=True)
     start_time = models.TimeField()
     end_time = models.TimeField()
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, blank=True)
 
     def __str__(self):
         return self.title

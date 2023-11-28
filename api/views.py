@@ -7,6 +7,8 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
+from .utils import get_calendar, get_schedule, get_event, check_time_clash
+
 
 @api_view(["GET"])
 def getRoutes(request):
@@ -22,9 +24,12 @@ class ScheduleCalendarList(APIView):
 
     def get(self, request):
         calendars = ScheduleCalendar.objects.filter(owner=request.user)
-        serializer = CalendarSerializer(calendars, many=True)
 
-        return Response(serializer.data)
+        if calendars:
+            serializer = CalendarSerializer(calendars, many=True)
+            return Response(serializer.data)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         serializer = CalendarSerializer(data=request.data)
@@ -44,30 +49,34 @@ class ScheduleCalendarItem(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self, request, pk):
-        try:
-            return ScheduleCalendar.objects.filter(owner=request.user).get(pk=pk)
-        except ScheduleCalendar.DoesNotExist:
-            raise Http404("Bad request")
+        return get_calendar(request, pk)
 
     def get(self, request, pk):
         calendar = self.get_object(request, pk)
 
-        serializer = CalendarSerializer(calendar, many=False)
-        return Response(serializer.data)
+        if calendar:
+            serializer = CalendarSerializer(calendar, many=False)
+            return Response(serializer.data)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
         calendar = self.get_object(request, pk)
-        serializer = CalendarSerializer(instance=calendar, data=request.data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+        if calendar:
+            serializer = CalendarSerializer(instance=calendar, data=request.data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         calendar = self.get_object(request, pk)
-        calendar.delete()
+
+        if calendar:
+            calendar.delete()
 
         return Response({"Deleted": "true"})
 
@@ -79,36 +88,44 @@ class ScheduleList(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get_calendar(self, request, cal_id):
-        try:
-            return ScheduleCalendar.objects.filter(owner=request.user).get(pk=cal_id)
-        except Schedule.DoesNotExist:
-            raise Http404("Bad / Unauthorized request")
+    def get_object(self, request, cal_id):
+        return get_calendar(request, cal_id, "Bad/Unauthorized request")
 
     def get(self, request, cal_id):
         """
         getting all schedules that belong to a calendar
         """
-        schedules = Schedule.objects.filter(calendar=self.get_calendar(request, cal_id))
-        serializer = ScheduleSerializer(schedules, many=True)
+        calendar = self.get_object(request, cal_id)
 
-        return Response(serializer.data)
+        if calendar:
+            schedules = Schedule.objects.filter(calendar=calendar)
 
-    #test post
+            if schedules:
+                serializer = ScheduleSerializer(schedules, many=True)
+                return Response(serializer.data)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    # test post
     def post(self, request, cal_id):
         """
         create schedule belonging to a calendar
         """
-        calendar = self.get_calendar(request, cal_id)
-        serializer = ScheduleSerializer(data=request.data)
+        calendar = self.get_object(request, cal_id)
 
-        if serializer.is_valid():
-            value = serializer.validated_data.get("value", 1)
-            serializer.save(
-                calendar=calendar, value=value
-            )  # setting the calendar and value of schedule
+        if calendar:
+            serializer = ScheduleSerializer(data=request.data)
 
-            return Response(serializer.data)
+            if serializer.is_valid():
+                value = serializer.validated_data.get("value", 1)
+                newly_created = serializer.save(
+                    calendar=calendar, value=value
+                )  # setting the calendar and value of schedule
+
+                # so that newly created object can be returned, might refactor
+                new_serializer = ScheduleSerializer(newly_created)
+
+                return Response(new_serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -117,119 +134,131 @@ class ScheduleItem(APIView):
     """
     Retrieve, Update or Delete a Schedule instance.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get_object(self, request, pk):
-        #also makes sure user is owner of schedule to be modified
-        """
-        i could also add an owner attribute to schedule model and query that way... however
-        right now i feel i could sacrifice speed for space... to be fair my app is small 
-        and extra space or speed should be inconsequential, but i could also easily refactor to
-        add owner attribute later on rather than the other way round
-        """
-        try:
-            schedule = Schedule.objects.get(pk=pk)
-        
-        except Schedule.DoesNotExist:
-            raise Http404
-        
-        if schedule.calendar.owner == request.user:
-            return schedule
-        
-        else:
-            raise Http404("Unauthorized request")
-            
+        return get_schedule(request, pk)
 
     def get(self, request, pk):
-    
         schedule = self.get_object(request, pk)
-        serializer = ScheduleSerializer(schedule, many=False)
 
-        return Response(serializer.data)
+        if schedule:
+            serializer = ScheduleSerializer(schedule, many=False)
 
+            return Response(serializer.data)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
-
         schedule = self.get_object(request, pk)
-        serializer = ScheduleSerializer(instance=schedule, data=request.data)
 
-        if serializer.is_valid():
-            new_schedule = serializer.save()
-            new_serializer = ScheduleSerializer(new_schedule)
+        if schedule:
+            serializer = ScheduleSerializer(instance=schedule, data=request.data)
 
-            return Response(new_serializer.data)
-        
+            if serializer.is_valid():
+                new_schedule = serializer.save()
+                new_serializer = ScheduleSerializer(new_schedule)
+
+                return Response(new_serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-
         schedule = self.get_object(request, pk)
-        schedule.delete()
 
-        return Response({"deleted":"true"})
+        if schedule:
+            schedule.delete()
+
+            return Response({"deleted": "true"})
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class DailyEventList(APIView):
     """
     List daily events / create daily event
     """
+
     permission_classes = [IsAuthenticated]
 
-    def get_schedule(self, request, sched_id):
-      
-        #make sure you own schedule
-        try:
-            schedule = Schedule.objects.get(pk=sched_id)
-            
-        except Schedule.DoesNotExist:
-            raise Http404({"bad request"})
-        
-        if schedule.calendar.owner == request.user:
-            return schedule
-            
-        else:
-            raise Http404({"bad request"})
-    
-    def get(self, request, sched_id):
-       
-        schedule = self.get_schedule(request, sched_id)
-        events = DailyEvent.objects.filter(schedule=schedule)
+    def get_object(self, request, sched_id):
+        return get_schedule(request, sched_id)
 
-        serializer = EventSerializer(events, many=True)
-        
-        return Response(serializer.data)
+    def get(self, request, sched_id):
+        schedule = self.get_object(request, sched_id)
+
+        if schedule:
+            events = DailyEvent.objects.filter(schedule=schedule)
+            serializer = EventSerializer(events, many=True)
+            return Response(serializer.data)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, sched_id):
+        schedule = self.get_object(request, sched_id)
 
-        schedule = self.get_schedule(request, sched_id)
+        if schedule:
+            serializer = EventSerializer(data=request.data)
 
-        serializer = EventSerializer(data=request.data)
+            if serializer.is_valid():
+                newly_created = serializer.save(schedule=schedule)
+                new_serializer = EventSerializer(newly_created)
+                return Response(new_serializer.data)
 
-        if serializer.is_valid():
-            new = serializer.save(schedule=schedule)
-            new_serializer = EventSerializer(new)
-            return Response(new_serializer.data)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 class DailyEventItem(APIView):
     """Retrieve, update and delete daily events"""
 
-    def get_object(request, pk):
+    def get_schedule(request, sched_id):
         try:
-            event = DailyEvent.objects.get(pk=pk)
-        
-        except DailyEvent.DoesNotExist:
+            schedule = Schedule.objects.get(pk=sched_id)
+        except Schedule.DoesNotExist:
             raise Http404
-        
-        if event.schedule.calendar.owner == request.user:
-            return event
-        
-        else:
-            raise Http404({"bad request"})
-        
+
+        if request.user == schedule.calendar.owner:
+            return schedule
+
+    def get_object(request, pk):
+        return get_event(request, pk)
 
     def get(self, request, pk):
         event = self.get_object(request, pk)
 
-        serializer = EventSerializer(event)
+        if event:
+            serializer = EventSerializer(event)
+            return Response(serializer.data)
 
-        return Response(serializer.data)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, schedule_id, pk):
+        event = self.get_object(request, pk)
+
+        if event:
+            serializer = EventSerializer(instance=event, data=request.data)
+
+            if serializer.is_valid():
+                # making sure no clashes between events
+                if check_time_clash(
+                    request,
+                    schedule_id,
+                    event,
+                    serializer.validated_data["start_time"],
+                    serializer.validated_data["end_time"],
+                ):
+                    newly_created = serializer.save()
+                    new_serializer = EventSerializer(newly_created)
+                    return Response(new_serializer.data, status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        event = self.get_object(request, pk)
+
+        if event:
+            event.delete()
+            return Response({"deleted": "true"})
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
