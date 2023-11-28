@@ -45,5 +45,29 @@ def get_event(request, event_id):
 
     return None
 
-def check_time_clash(request, sched_id, start_time, end_time):
-    pass    
+
+def check_time_clash(request, sched_id, event, start_time, end_time):
+    schedule = get_schedule(request, sched_id)
+
+    if schedule:
+        if event:
+            events = schedule.events.all().exclude(event)
+        else:
+            events = schedule.events.all()
+
+        # if there is a clash with any other events return False
+        for other_event in events:
+            if (
+                other_event.start_time <= start_time <= other_event.end_time
+                or other_event.start_time <= end_time <= other_event.end_time
+            ):
+                return False
+
+        # if the end_time is less than the start_time ie start something today and end tomorrow return false
+        if start_time > end_time:
+            return False
+
+        else:
+            return True
+
+    return False

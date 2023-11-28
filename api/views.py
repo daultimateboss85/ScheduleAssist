@@ -202,9 +202,16 @@ class DailyEventList(APIView):
             serializer = EventSerializer(data=request.data)
 
             if serializer.is_valid():
-                newly_created = serializer.save(schedule=schedule)
-                new_serializer = EventSerializer(newly_created)
-                return Response(new_serializer.data)
+                if check_time_clash(
+                    request,
+                    sched_id,
+                    None,
+                    serializer._validated_data["start_time"],
+                    serializer.validated_data["end_time"],
+                ):
+                    newly_created = serializer.save(schedule=schedule)
+                    new_serializer = EventSerializer(newly_created)
+                    return Response(new_serializer.data)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 

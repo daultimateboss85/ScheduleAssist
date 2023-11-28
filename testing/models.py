@@ -85,7 +85,7 @@ class DailyEvent(models.Model):
     description = models.TextField(blank=True, null=True)
     start_time = models.TimeField()
     end_time = models.TimeField()
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, blank=True)
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, blank=True, related_name="events")
 
     def __str__(self):
         return self.title
