@@ -20,7 +20,7 @@ class Tasks(models.Model):
 
 class ScheduleCalendar(models.Model):
     owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="schedule_cal", blank=True
+        User, on_delete=models.CASCADE, related_name="schedule_cals", blank=True
     )
     name = models.CharField(max_length=255, unique=True)
 

@@ -23,6 +23,7 @@ class ScheduleCalendarList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # remove this point of failure
         calendars = ScheduleCalendar.objects.filter(owner=request.user)
 
         if calendars:
@@ -35,7 +36,7 @@ class ScheduleCalendarList(APIView):
         serializer = CalendarSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(owner=request.user)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -218,15 +219,6 @@ class DailyEventList(APIView):
 
 class DailyEventItem(APIView):
     """Retrieve, update and delete daily events"""
-
-    def get_schedule(request, sched_id):
-        try:
-            schedule = Schedule.objects.get(pk=sched_id)
-        except Schedule.DoesNotExist:
-            raise Http404
-
-        if request.user == schedule.calendar.owner:
-            return schedule
 
     def get_object(request, pk):
         return get_event(request, pk)

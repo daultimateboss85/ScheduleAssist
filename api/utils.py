@@ -47,6 +47,7 @@ def get_event(request, event_id):
 
 
 def check_time_clash(request, sched_id, event, start_time, end_time):
+    """makes sure event to be created doesnt clash with any other event in schedule it's to be added"""
     schedule = get_schedule(request, sched_id)
 
     if schedule:
