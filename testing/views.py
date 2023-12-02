@@ -13,11 +13,8 @@ def loginView(request):
 
 
 def testHome(request):
-    cals =  ScheduleCalendar.objects.filter(owner=request.user)
     
-    context = {"cals": cals}
-    
-    return render(request, 'testing/sched-cals.html',  context)
+    return render(request, 'testing/sched-cals.html')
 
 
 def addDailyevent(request):

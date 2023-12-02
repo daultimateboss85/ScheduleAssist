@@ -1,12 +1,9 @@
 {% extends 'main.html' %}
-
+{% load static %}
 
 {% block content %}
-
-{% for cal in cals %}
-
-<p>{{cal}}</p>
-{% endfor %}
-
+<div id="sidebar">Sidebar</div>
+<div id="topbar">Top grid</div>
+<div id="maingrid">Main grid</div>
 
 {% endblock %}

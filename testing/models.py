@@ -69,7 +69,7 @@ class Schedule(models.Model):
         related_name="day_schedule",
         blank=True,
     )
-    name = models.CharField(max_length=255, choices=NAME_CHOICES)
+    name = models.CharField(max_length=255, choices=NAME_CHOICES, blank=True)
     value = models.IntegerField(choices=VALUE_CHOICES, default=1, blank=True)
 
     class Meta:
@@ -81,10 +81,10 @@ class Schedule(models.Model):
 
 
 class DailyEvent(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True, null=True)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(blank=True)
+    end_time = models.TimeField(blank=True)
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, blank=True, related_name="events")
 
     def __str__(self):

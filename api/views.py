@@ -39,6 +39,8 @@ class ScheduleCalendarList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
 
 
 # implement update and delete
@@ -71,7 +73,10 @@ class ScheduleCalendarItem(APIView):
                 serializer.save()
                 return Response(serializer.data)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
     def delete(self, request, pk):
         calendar = self.get_object(request, pk)
@@ -128,7 +133,10 @@ class ScheduleList(APIView):
 
                 return Response(new_serializer.data)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ScheduleItem(APIView):
@@ -162,6 +170,9 @@ class ScheduleItem(APIView):
                 new_serializer = ScheduleSerializer(new_schedule)
 
                 return Response(new_serializer.data)
+            
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -213,6 +224,9 @@ class DailyEventList(APIView):
                     newly_created = serializer.save(schedule=schedule)
                     new_serializer = EventSerializer(newly_created)
                     return Response(new_serializer.data)
+                
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -220,7 +234,7 @@ class DailyEventList(APIView):
 class DailyEventItem(APIView):
     """Retrieve, update and delete daily events"""
 
-    def get_object(request, pk):
+    def get_object(self, request, pk):
         return get_event(request, pk)
 
     def get(self, request, pk):
@@ -232,17 +246,16 @@ class DailyEventItem(APIView):
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, schedule_id, pk):
+    def put(self, request, pk):
         event = self.get_object(request, pk)
 
         if event:
             serializer = EventSerializer(instance=event, data=request.data)
 
             if serializer.is_valid():
+                print("hello")
                 # making sure no clashes between events
                 if check_time_clash(
-                    request,
-                    schedule_id,
                     event,
                     serializer.validated_data["start_time"],
                     serializer.validated_data["end_time"],
@@ -250,6 +263,9 @@ class DailyEventItem(APIView):
                     newly_created = serializer.save()
                     new_serializer = EventSerializer(newly_created)
                     return Response(new_serializer.data, status=status.HTTP_200_OK)
+            
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
