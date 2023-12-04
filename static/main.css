@@ -2,3 +2,88 @@
     box-sizing: border-box;
 }
 
+#container{
+    
+    display: grid;
+    grid-template-columns: 1fr 5fr;
+    grid-auto-rows: minmax(50px, auto);
+
+}
+
+#options{
+    background-color: aqua;
+}
+
+#topbar{
+    background-color: aquamarine;
+    position: sticky;
+}
+
+#sidebar{
+    background-color: azure;
+}
+
+/* contains calendar grid */
+#maingrid{
+    background-color: blueviolet;
+    max-height: 100%;
+    overflow-y: scroll;
+}
+
+/* contains entire calendar */
+#calendar-grid{
+    background-color: rgb(177, 177, 177);
+    display: grid;
+    grid-template-columns: 1fr repeat(7, 2fr);
+    column-gap: 2px;
+    max-height: 85vh;
+    overflow-y: scroll;
+}
+
+
+/* different parts of calendar grid */
+.schedule-col, .label-col{
+    background-color: rgb(177, 177, 177);
+    display: grid;
+    grid-auto-rows: minmax(40px, auto);
+    row-gap: 0.15rem;
+    justify-items: stretch;
+    align-items: stretch;
+    
+    
+    
+}
+
+/* contains labels */
+.label-col{
+    
+}
+
+/* different "boxes" in calendar labels and events */
+.label, .cal-event, .schedule-name{
+    display: flex;
+    background-color: lightblue;
+
+}
+
+.label{    
+    font-size: xx-small;
+    justify-content: flex-end;
+    align-items: flex-end;
+   
+}
+
+/* contains events and schedule names */
+.schedule-col{
+   
+}
+
+.schedule-name{
+ justify-content: center;
+ align-items: center;
+}
+
+.cal-event{
+ justify-content: flex-start;
+ white-space: pre;
+}

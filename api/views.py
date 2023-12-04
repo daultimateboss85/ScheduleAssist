@@ -59,6 +59,7 @@ class ScheduleCalendarItem(APIView):
 
         if calendar:
             serializer = CalendarSerializer(calendar, many=False)
+            request.user.last_viewed_cal = calendar
             return Response(serializer.data)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
