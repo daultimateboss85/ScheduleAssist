@@ -13,17 +13,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
         console.log(result)
     })
 
-
-    fetch("api/ScheduleCalendars/", {
-        headers:{
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-    })
-    .then(res => res.json())
-    .then(result => {
-        console.log(result)
-    })
-
     load_home();
 })
 
@@ -34,18 +23,22 @@ function load_home(){
     console.log("hello")
 
     //somehow get last viewed calendar id
-    let last_viewed = 1;
+    let last_viewed = 2;
 
     load_calendar(last_viewed);
 }
 
 
 function load_calendar(cal_id){
-    fetch( `api/ScheduleCalendars/${cal_id}`)
+    fetch( `api/ScheduleCalendars/${cal_id}`,{
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+    })
     .then(res => res.json())
     .then(result => {
 
-
+    console.log(result);
     //section of screen that holds calendar grid
     let main_grid = document.querySelector("#maingrid");
 
@@ -58,6 +51,17 @@ function load_calendar(cal_id){
     calendar_grid.append(first_column);
 
     first_column.classList.add("label-col");
+
+    let name = ""; 
+    const schedules = result["schedules"];
+    for(let i = 0; i < schedules.length; i++){
+        let schedule = schedules[i];
+        if (schedule["name"] != name){
+            name = schedule["name"]
+            load_schedule(schedule["id"]);
+        } 
+    }
+
 
     for(let i=0; i<24; i++){
         let label = document.createElement("div");
@@ -108,3 +112,6 @@ function load_calendar(cal_id){
     })
 }
 
+function load_schedule(schedule_id){
+
+}

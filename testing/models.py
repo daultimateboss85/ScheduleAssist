@@ -4,7 +4,9 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class User(AbstractUser):
-    last_viewed_cal = models.OneToOneField("ScheduleCalendar", on_delete=models.SET_NULL, null=True, blank=True)
+    last_viewed_cal = models.OneToOneField(
+        "ScheduleCalendar", on_delete=models.SET_NULL, null=True, blank=True
+    )
 
 
 class Tasks(models.Model):
@@ -27,9 +29,14 @@ class ScheduleCalendar(models.Model):
     def __str__(self):
         return f"{self.owner}'s {self.name} calendar"
 
+    @property
+    def schedules_set(self):
+        return self.schedule_set.values("id","name","value")
 
 class MiscellanousCalendar(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="misc_cal", blank=True)
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="misc_cal", blank=True
+    )
     name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
@@ -66,18 +73,21 @@ class Schedule(models.Model):
     calendar = models.ForeignKey(
         ScheduleCalendar,
         on_delete=models.CASCADE,
-        related_name="day_schedule",
         blank=True,
     )
     name = models.CharField(max_length=255, choices=NAME_CHOICES, blank=True)
     value = models.IntegerField(choices=VALUE_CHOICES, default=1, blank=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["name", "value"]
         unique_together = [["calendar", "name", "value"]]
 
     def __str__(self):
         return f"{self.calendar}'s {self.get_name_display()} schedule"
+
+    @property
+    def events_set(self):
+        return self.events.values_list("id", flat=True)
 
 
 class DailyEvent(models.Model):
@@ -85,11 +95,13 @@ class DailyEvent(models.Model):
     description = models.TextField(blank=True, null=True)
     start_time = models.TimeField(blank=True)
     end_time = models.TimeField(blank=True)
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, blank=True, related_name="events")
+    schedule = models.ForeignKey(
+        Schedule, on_delete=models.CASCADE, blank=True, related_name="events"
+    )
 
     def __str__(self):
         return self.title
-    
+
     class Meta:
         ordering = ["start_time"]
 

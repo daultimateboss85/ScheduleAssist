@@ -96,7 +96,7 @@ class ScheduleList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self, request, cal_id):
-        return get_calendar(request, cal_id, "Bad/Unauthorized request")
+        return get_calendar(request, cal_id)
 
     def get(self, request, cal_id):
         """
