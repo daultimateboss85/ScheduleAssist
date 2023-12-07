@@ -3,11 +3,9 @@
 }
 
 #container{
-    
     display: grid;
     grid-template-columns: 1fr 5fr;
     grid-auto-rows: minmax(50px, auto);
-
 }
 
 #options{
@@ -27,7 +25,6 @@
 #maingrid{
     background-color: blueviolet;
     max-height: 100%;
-    overflow-y: scroll;
 }
 
 /* contains entire calendar */
@@ -49,8 +46,6 @@
     row-gap: 0.15rem;
     justify-items: stretch;
     align-items: stretch;
-    
-    
     
 }
 
@@ -85,5 +80,22 @@
 
 .cal-event{
  justify-content: flex-start;
- white-space: pre;
+ align-items: center;
+}
+
+
+
+/* messing around with media queries les go */
+/* not bothering how it looks in portrait mode for now */
+@media (orientation: portrait){
+    #maingrid{
+        display: none;
+
+    }
+}
+
+@media (min-height: 400px){
+    .schedule-col, .label-col{
+        grid-auto-rows: minmax(70px, auto);
+    }
 }

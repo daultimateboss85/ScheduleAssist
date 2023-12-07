@@ -216,11 +216,10 @@ class DailyEventList(APIView):
 
             if serializer.is_valid():
                 if check_time_clash(
-                    request,
-                    sched_id,
                     None,
-                    serializer._validated_data["start_time"],
+                    serializer.validated_data["start_time"],
                     serializer.validated_data["end_time"],
+                    schedule
                 ):
                     newly_created = serializer.save(schedule=schedule)
                     new_serializer = EventSerializer(newly_created)

@@ -44,7 +44,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
                 self.instance.name = Schedule.NAME_CHOICES_VALUES[self.instance.name] 
     
     def get_events(self, obj):
-        return obj.events_set
+        return EventSerializer(obj.events_set, many=True).data
 
 class EventSerializer(serializers.ModelSerializer):
 
@@ -63,5 +63,5 @@ class EventSerializer(serializers.ModelSerializer):
                     object.end_time = object.end_time.strftime("%H:%M")
             
             except:
-                object.start_time = object.end_time.strftime("%H:%M")
-                object.end_time = object.end_time.strftime("%H:%M")
+                self.instance.start_time = self.instance.start_time.strftime("%H:%M")
+                self.instance.end_time = self.instance.end_time.strftime("%H:%M")

@@ -8,6 +8,29 @@ class User(AbstractUser):
         "ScheduleCalendar", on_delete=models.SET_NULL, null=True, blank=True
     )
 
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        if not update_fields:
+            default_calendar = ScheduleCalendar.objects.create(
+                name="Default Calendar", owner=self
+            )
+            self.last_viewed_cal = default_calendar
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
+
+        else:
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
+
 
 class Tasks(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tasks")
@@ -19,19 +42,6 @@ class Tasks(models.Model):
     def __str__(self):
         return self.title
 
-
-class ScheduleCalendar(models.Model):
-    owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="schedule_cals", blank=True
-    )
-    name = models.CharField(max_length=255, unique=True)
-
-    def __str__(self):
-        return f"{self.owner}'s {self.name} calendar"
-
-    @property
-    def schedules_set(self):
-        return self.schedule_set.values("id","name","value")
 
 class MiscellanousCalendar(models.Model):
     owner = models.ForeignKey(
@@ -71,7 +81,7 @@ class Schedule(models.Model):
     VALUE_CHOICES = ((1, "Main"), (2, "Alt1"), (3, "Alt2"))
 
     calendar = models.ForeignKey(
-        ScheduleCalendar,
+        "ScheduleCalendar",
         on_delete=models.CASCADE,
         blank=True,
     )
@@ -87,7 +97,26 @@ class Schedule(models.Model):
 
     @property
     def events_set(self):
-        return self.events.values_list("id", flat=True)
+        return self.events.all()
+
+
+class ScheduleCalendar(models.Model):
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="schedule_cals", blank=True
+    )
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return f"{self.owner}'s {self.name} calendar"
+
+    @property
+    def schedules_set(self):
+        return self.schedule_set.values("id", "name", "value")
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        for i in range(8):
+            schedule = Schedule.objects.create(calendar=self, name=str(i))
 
 
 class DailyEvent(models.Model):
@@ -104,6 +133,15 @@ class DailyEvent(models.Model):
 
     class Meta:
         ordering = ["start_time"]
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+
+        if update_fields:
+            other_events = self.schedule.objects.exclude(self)
+
+        else:
+            other_events = 
+
 
 
 class MiscEvent(models.Model):

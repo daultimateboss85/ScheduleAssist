@@ -153,3 +153,15 @@ class ScheduleCalendarItemViewTestCase(GenTest):
 
         response = self.client.get(reverse("schedulecalendar-item", args=[calendar.id]))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+"""
+To test
+
+test crud  of calendars
+crud of schedules
+crud of events
+
+creation of schedules when calendar is created
+all apis
+"""

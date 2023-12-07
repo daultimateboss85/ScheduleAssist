@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", ()=>{
-
+    //going to make this such that on login get user token
     fetch("api/token/", {
         method: "POST",
         headers:{
@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
         console.log(result)
     })
 
+    //load home page immediately after displaying last viewed calendar or default calendar if none
     load_home();
 })
 
@@ -20,11 +21,13 @@ const DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
 function load_home(){
     //initial calendar load when user logs in
-    console.log("hello")
-
     //somehow get last viewed calendar id
-    let last_viewed = 2;
+    let last_viewed = 7;
 
+    //set up sidebar and top bar
+
+
+    //load a calendar
     load_calendar(last_viewed);
 }
 
@@ -39,79 +42,120 @@ function load_calendar(cal_id){
     .then(result => {
 
     console.log(result);
-    //section of screen that holds calendar grid
-    let main_grid = document.querySelector("#maingrid");
 
     //grid that holds calendar
-    let calendar_grid = document.createElement("div");
+    let calendar_grid = document.querySelector("#calendar-grid");
     calendar_grid.setAttribute("id", "calendar-grid");
 
-    //label column of calendar --------------------------------------------
-    let first_column = document.createElement("div");
-    calendar_grid.append(first_column);
+    //LABEL COLUMN OF CALENDAR --------------------------------------------
+    let first_column = document.querySelector("#label-col");
 
     first_column.classList.add("label-col");
 
-    let name = ""; 
-    const schedules = result["schedules"];
-    for(let i = 0; i < schedules.length; i++){
-        let schedule = schedules[i];
-        if (schedule["name"] != name){
-            name = schedule["name"]
-            load_schedule(schedule["id"]);
-        } 
-    }
-
-
-    for(let i=0; i<24; i++){
+    for(let i=0; i<25; i++){
         let label = document.createElement("div");
         label.classList.add("label");
-
         if (i == 0){
+            // label.classList.add("schedule-name");
             label.innerHTML += "GMT +00";
         }else{
             if (i <= 11){
                 label.innerHTML += `${i} AM`;
+
             }else{
                 label.innerHTML += `${i} PM`;
 
             }
-        
         }
-
         first_column.append(label);
-    }
+    } //  end of label column -----------------------------------------------------------------
     
-    //main part of calendar --------------------------------------------------------------
-    for (let i=0; i<7; i++){
-        let schedule_column = document.createElement("div");
-        calendar_grid.append(schedule_column);
-        schedule_column.classList.add("schedule-col");
 
+    //LOADING SCHEDULES --------------------------------------------------------------
+    let name = ""; 
+        const schedules = result["schedules"];
+        for(let i = 0; i < schedules.length; i++){
+            //iterate through schedules picking only main schedule 
+            let schedule = schedules[i];
+            if (schedule["name"] != name && schedule["name"] != "0"){
+                name = schedule["name"];
 
-        for(let j=0; j<24; j++){
-            let cal_box = document.createElement("div");
-            schedule_column.append(cal_box);
-
-
-            if(j==0){
-                cal_box.classList.add("schedule-name");
-                cal_box.innerHTML += DAY_LIST[i];
-            }else{
-
-                cal_box.classList.add("cal-event");
-                cal_box.innerHTML += "Some event\n" + "12:00 - 15:00";
-            }
+                load_schedule(schedule);
+            } 
         }
-        
-
-    }
-
-    main_grid.append(calendar_grid);
-    
     })
 }
 
-function load_schedule(schedule_id){
 
+function load_schedule(schedule){
+    const name = schedule["name"];
+    fetch(`api/Schedule/${schedule["id"]}`, {
+        headers:{
+            Authorization:`Bearer ${localStorage.getItem("token")}`
+        }
+        })
+    .then( res => res.json())
+    .then(schedule => {
+        console.log(schedule);
+        
+        //main part of calendar --------------------------------------------------------------
+        let schedule_column = document.querySelector(`#schedule${Number(name)}`);
+
+
+        schedule_column.classList.add("schedule-col");
+
+        //title's of columns
+        let title_container = document.createElement("div");
+        schedule_column.append(title_container);
+        title_container.classList.add("schedule-name");
+
+        title_container.innerHTML += schedule["name"].substr(0, 3).toUpperCase();
+        // end of title
+
+        //event boxes
+        for (let i=0; i<24; i++){
+            let event_box = document.createElement("div");
+            schedule_column.append(event_box);
+
+            event_box.setAttribute("data-schedule", `schedule${schedule["id"]}`);
+            event_box.setAttribute("data-event", `${i}`);
+
+            event_box.classList.add("cal-event");
+        }
+
+
+        const events = schedule["events"];
+
+        events.forEach((event, index) =>{
+            
+            console.log(typeof(event["start_time"]));
+            //to_place = document.querySelector(`div[data-event=${Number(event["start_time"])}]`)
+
+        }) 
+        
+    })
 }
+        //title of column
+
+  
+        
+        /*     for(let j=0; j<24; j++){
+                
+        
+                if(j==0){
+                    cal_box.classList.add("schedule-name");
+                    cal_box.innerHTML += DAY_LIST[i];
+                }else{
+
+                    cal_box.classList.add("cal-event");
+                    cal_box.innerHTML += "Some event\n" + "12:00 - 15:00";
+                }
+            }
+         */
+
+/*         }
+    })
+
+    
+
+} */
