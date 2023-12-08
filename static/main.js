@@ -101,7 +101,6 @@ function load_schedule(schedule){
         //main part of calendar --------------------------------------------------------------
         let schedule_column = document.querySelector(`#schedule${Number(name)}`);
 
-
         schedule_column.classList.add("schedule-col");
 
         //title's of columns
@@ -126,11 +125,16 @@ function load_schedule(schedule){
 
         const events = schedule["events"];
 
-        events.forEach((event, index) =>{
-            
-            console.log(typeof(event["start_time"]));
-            //to_place = document.querySelector(`div[data-event=${Number(event["start_time"])}]`)
+        events.forEach((event_object, index) =>{
+        
+            let start = Number(event_object["start_time"].substr(0,2));
+            console.log(start);
+          
+            let to_place = document.querySelector(`div[data-event="${start}"]`);
 
+            let event = document.createElement("div");
+            event.innerHTML += `${event_object["title"]}`;
+            to_place.append(event);
         }) 
         
     })

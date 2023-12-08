@@ -215,7 +215,15 @@ class DailyEventList(APIView):
             serializer = EventSerializer(data=request.data)
 
             if serializer.is_valid():
-                if check_time_clash(
+                try:
+                    newly_created = serializer.save(schedule=schedule)
+                    new_serializer = EventSerializer(newly_created)
+                    return Response(new_serializer.data) 
+
+                except ValueError:
+                    return Response("INvalid times", status=status.HTTP_400_BAD_REQUEST)
+
+                """ if check_time_clash(
                     None,
                     serializer.validated_data["start_time"],
                     serializer.validated_data["end_time"],
@@ -223,7 +231,7 @@ class DailyEventList(APIView):
                 ):
                     newly_created = serializer.save(schedule=schedule)
                     new_serializer = EventSerializer(newly_created)
-                    return Response(new_serializer.data)
+                    return Response(new_serializer.data) """
                 
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
             
@@ -253,16 +261,14 @@ class DailyEventItem(APIView):
             serializer = EventSerializer(instance=event, data=request.data)
 
             if serializer.is_valid():
-                print("hello")
                 # making sure no clashes between events
-                if check_time_clash(
-                    event,
-                    serializer.validated_data["start_time"],
-                    serializer.validated_data["end_time"],
-                ):
+                try:
                     newly_created = serializer.save()
                     new_serializer = EventSerializer(newly_created)
-                    return Response(new_serializer.data, status=status.HTTP_200_OK)
+                    return Response(new_serializer.data) 
+
+                except ValueError:
+                    return Response("INvalid times", status=status.HTTP_400_BAD_REQUEST)
             
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
             

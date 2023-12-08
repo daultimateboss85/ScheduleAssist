@@ -134,14 +134,33 @@ class DailyEvent(models.Model):
     class Meta:
         ordering = ["start_time"]
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(self,*args, **kwargs):
 
-        if update_fields:
-            other_events = self.schedule.objects.exclude(self)
+        unsaved = self.id is None
+        
+        if unsaved:
+            other_events = self.schedule.events_set
+        else:
+            other_events = self.schedule.objects.events_set.exclude(id=self.id)
+
+        for other_event in other_events:
+            if (
+                self.start_time == other_event.start_time or 
+                self.end_time  == other_event.end_time or
+                other_event.start_time < self.start_time < other_event.end_time
+                or other_event.start_time < self.end_time < other_event.end_time
+            ):
+                raise ValueError("Bad times") #describe this
+            
+         # if the end_time is less than the start_time ie start something today and end tomorrow return false
+        if self.start_time >= self.end_time:
+            raise ValueError("Bad times") #describe this
 
         else:
-            other_events = 
+            super().save(*args, **kwargs)
 
+        
+            
 
 
 class MiscEvent(models.Model):
