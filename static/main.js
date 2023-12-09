@@ -111,15 +111,20 @@ function load_schedule(schedule){
         title_container.innerHTML += schedule["name"].substr(0, 3).toUpperCase();
         // end of title
 
+        // event column
+        let event_column = document.createElement("div");
+        schedule_column.append(event_column);
+        event_column.classList.add("event-col");
+
         //event boxes
         for (let i=0; i<24; i++){
             let event_box = document.createElement("div");
-            schedule_column.append(event_box);
+            event_column.append(event_box);
 
             event_box.setAttribute("data-schedule", `schedule${schedule["id"]}`);
             event_box.setAttribute("data-event", `${i}`);
 
-            event_box.classList.add("cal-event");
+            event_box.classList.add("event-box");
         }
 
 
@@ -132,9 +137,31 @@ function load_schedule(schedule){
           
             let to_place = document.querySelector(`div[data-event="${start}"]`);
 
-            let event = document.createElement("div");
-            event.innerHTML += `${event_object["title"]}`;
-            to_place.append(event);
+            // container of event
+            let event_container = document.createElement("div");
+
+            // setting height of event container based on how long event is
+            let start_hour, start_minute, time_difference = parse_time(event_object);
+            //event_container.style.height *= time_difference;
+
+            to_place.append(event_container);
+            event_container.classList.add("event-container");
+
+            // title of event
+            let title_container = document.createElement("div");
+            event_container.append(title_container);
+            title_container.classList.add("event-title");
+            title_container.innerHTML += `${event_object["title"]}`;
+
+            // time of event
+
+            let time_container = document.createElement("div");
+            event_container.append(time_container);
+            time_container.classList.add("event-time");
+            time_container.innerHTML += `${event_object["start_time"]}-${event_object["end_time"]}`;
+
+
+
         }) 
         
     })
@@ -163,3 +190,20 @@ function load_schedule(schedule){
     
 
 } */
+
+
+function parse_time(event){
+    // parsing event start and end times
+    const start_time = event["start_time"];
+    const end_time = event["end_time"];
+
+    let start_hour = Number(start_time.substr(0,2));
+    let end_hour = Number(end_time.substr(0,2));
+
+    let start_minute = Number(start_time.substr(5,2));
+    let end_minute = Number(end_time.substr(5,2));
+
+    let time_difference = end_hour - start_hour + (end_minute - start_minute)/60;
+
+    return start_hour, start_minute, time_difference;
+}

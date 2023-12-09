@@ -1,3 +1,8 @@
+/* Some variables :) */
+:root{
+    --row-gap: 0.15rem;
+}
+
 *{
     box-sizing: border-box;
 }
@@ -32,58 +37,76 @@
     background-color: rgb(177, 177, 177);
     display: grid;
     grid-template-columns: 1fr repeat(7, 2fr);
-    column-gap: 2px;
+    column-gap: var(--row-gap);
     max-height: 85vh;
     overflow-y: scroll;
 }
 
 
 /* different parts of calendar grid */
-.schedule-col, .label-col{
+ .label-col, .event-col{
     background-color: rgb(177, 177, 177);
     display: grid;
-    grid-auto-rows: minmax(40px, auto);
-    row-gap: 0.15rem;
+    grid-auto-rows: 100px;
+    row-gap: var(--row-gap);
     justify-items: stretch;
     align-items: stretch;
+   
     
 }
 
-/* contains labels */
-.label-col{
-    
+.title-grid{
+    display: grid;
+}
+
+.schedule-col{
+    display: grid;
+    grid-template-rows: 100px auto;
+    row-gap: var(--row-gap);
 }
 
 /* different "boxes" in calendar labels and events */
-.label, .cal-event, .schedule-name{
-    display: flex;
-    background-color: lightblue;
-
+.label, .schedule-name{
+    display: grid;
+    background-color: #f3f6f9;
 }
 
 .label{    
     font-size: xx-small;
-    justify-content: flex-end;
-    align-items: flex-end;
-   
-}
-
-/* contains events and schedule names */
-.schedule-col{
-   
+    justify-items: end;
+    align-items: end;
 }
 
 .schedule-name{
- justify-content: center;
- align-items: center;
+    
+    justify-items: center;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    border-bottom: solid var(--row-gap) rgb(177, 177, 177);
+    z-index: 2;
+    
 }
 
-.cal-event{
- justify-content: flex-start;
- align-items: center;
+.event-box{
+    background-color: #f3f6f9;
+    height: 100px;
+    
 }
 
+.event-container{
+    position: relative;
+    background-color: lightblue; 
+    border : solid 1px black;
+}
 
+.event-title{
+    
+}
+
+.event-time{
+    
+}
 
 /* messing around with media queries les go */
 /* not bothering how it looks in portrait mode for now */
@@ -94,8 +117,3 @@
     }
 }
 
-@media (min-height: 400px){
-    .schedule-col, .label-col{
-        grid-auto-rows: minmax(70px, auto);
-    }
-}

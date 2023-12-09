@@ -141,7 +141,7 @@ class DailyEvent(models.Model):
         if unsaved:
             other_events = self.schedule.events_set
         else:
-            other_events = self.schedule.objects.events_set.exclude(id=self.id)
+            other_events = self.schedule.events_set.exclude(id=self.id)
 
         for other_event in other_events:
             if (
