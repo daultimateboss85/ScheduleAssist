@@ -51,24 +51,31 @@ function load_calendar(cal_id){
     let first_column = document.querySelector("#label-col");
 
     first_column.classList.add("label-col");
+    let label = document.createElement("div");
+    first_column.append(label);
+        
+    label.classList.add("schedule-name");
+    label.innerHTML += "GMT +00";
+    
 
-    for(let i=0; i<25; i++){
+    let label_col = document.createElement("div");
+    first_column.append(label_col);
+    label_col.classList.add("label-items");
+
+    for(let i=1; i<25; i++){
         let label = document.createElement("div");
+    
         label.classList.add("label");
-        if (i == 0){
-            // label.classList.add("schedule-name");
-            label.innerHTML += "GMT +00";
+        if (i <= 11){
+            label.innerHTML += `${i} AM`;
+
         }else{
-            if (i <= 11){
-                label.innerHTML += `${i} AM`;
+            label.innerHTML += `${i} PM`;
 
-            }else{
-                label.innerHTML += `${i} PM`;
-
-            }
         }
-        first_column.append(label);
-    } //  end of label column -----------------------------------------------------------------
+        label_col.append(label)
+        }
+     //  end of label column -----------------------------------------------------------------
     
 
     //LOADING SCHEDULES --------------------------------------------------------------
@@ -125,6 +132,28 @@ function load_schedule(schedule){
             event_box.setAttribute("data-event", `${i}`);
 
             event_box.classList.add("event-box");
+
+            // event listener
+            // click on box triggers procedure to add an event
+
+            event_box.addEventListener("click", function(){
+
+                // form to submit
+                let form = document.createElement("form");
+                form.setAttribute("action", `/`)
+                //form.setAttribute("method", "post");
+                form.classList.add("form");
+                let form_container = document.createElement("div");
+                
+                form.append(form_container)
+                form_container.classList.add("form-container");
+
+                let title_input = document.createElement("input");
+                form_container.append(title_input);
+
+                event_box.append(form);
+                
+            })
         }
 
 
@@ -132,20 +161,23 @@ function load_schedule(schedule){
 
         events.forEach((event_object, index) =>{
         
-            let start = Number(event_object["start_time"].substr(0,2));
-            console.log(start);
-          
+            const start = Number(event_object["start_time"].substr(0,2));
             let to_place = document.querySelector(`div[data-event="${start}"]`);
 
             // container of event
             let event_container = document.createElement("div");
-
             // setting height of event container based on how long event is
-            let start_hour, start_minute, time_difference = parse_time(event_object);
-            //event_container.style.height *= time_difference;
+            let [start_hour, start_minute, time_difference, hour_difference, crossover] = parse_time(event_object);
+          
+
+            let row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
+            let row_height = window.getComputedStyle(document.documentElement).getPropertyValue("--row-height");
+
+            event_container.style.height= `${125 * time_difference + 0.15*16*(hour_difference-1 + crossover)}px`;
 
             to_place.append(event_container);
             event_container.classList.add("event-container");
+
 
             // title of event
             let title_container = document.createElement("div");
@@ -154,42 +186,16 @@ function load_schedule(schedule){
             title_container.innerHTML += `${event_object["title"]}`;
 
             // time of event
-
             let time_container = document.createElement("div");
             event_container.append(time_container);
             time_container.classList.add("event-time");
             time_container.innerHTML += `${event_object["start_time"]}-${event_object["end_time"]}`;
 
-
-
         }) 
         
     })
 }
-        //title of column
-
-  
         
-        /*     for(let j=0; j<24; j++){
-                
-        
-                if(j==0){
-                    cal_box.classList.add("schedule-name");
-                    cal_box.innerHTML += DAY_LIST[i];
-                }else{
-
-                    cal_box.classList.add("cal-event");
-                    cal_box.innerHTML += "Some event\n" + "12:00 - 15:00";
-                }
-            }
-         */
-
-/*         }
-    })
-
-    
-
-} */
 
 
 function parse_time(event){
@@ -199,11 +205,20 @@ function parse_time(event){
 
     let start_hour = Number(start_time.substr(0,2));
     let end_hour = Number(end_time.substr(0,2));
+    
+    let start_minute = Number(start_time.substr(3,2));
+    let end_minute = Number(end_time.substr(3,2));
 
-    let start_minute = Number(start_time.substr(5,2));
-    let end_minute = Number(end_time.substr(5,2));
+    let time_difference = (end_hour + end_minute/60 )- (start_hour +  start_minute/60);
+    let hour_difference = end_hour - start_hour;
 
-    let time_difference = end_hour - start_hour + (end_minute - start_minute)/60;
-
-    return start_hour, start_minute, time_difference;
+    let crossover = Math.abs(end_minute - start_minute);
+    // if an event crosses into a new hour, then extra row gap should be added to it
+    if (crossover != 0 && hour_difference == 1){
+        crossover = 1;
+    }
+    else{
+        crossover = 0;
+    }
+    return [start_hour, start_minute, time_difference, hour_difference, crossover];
 }
