@@ -73,13 +73,10 @@
     background-color: #f3f6f9;
 }
 
-.label{    
-    
-    position: relative;
+.label{     
     font-size: xx-small;
     justify-items: end;
     align-items: end;
-    
 }
 
 .schedule-name{
@@ -95,6 +92,7 @@
     background-color: #f3f6f9;
     height: var(--row-height);
     position: relative;
+   
 }
 
 .event-container{
@@ -117,17 +115,30 @@
 }
 
 .form{
-    z-index: 5;
     position: absolute;
     width: 100%;
     top: 0;
     left: 105%;
     background-color: blanchedalmond;
+    z-index: 5;
   
 }
 
-.form-container input{
+.form-container{
+    position: relative;
+    height: 30vh;
+    width: 40vw;
+    background-color: blanchedalmond;
+    z-index: 10;
+}
 
+
+.form-container h2{
+    
+}
+.form-container input{
+    position: relative;
+    
 }   
 
 

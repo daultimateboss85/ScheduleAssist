@@ -8,28 +8,25 @@ class User(AbstractUser):
         "ScheduleCalendar", on_delete=models.SET_NULL, null=True, blank=True
     )
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        if not update_fields:
+    def save(self, *args, **kwargs):
+        """
+        check if new or already existing user, if new create default calendar else dont
+        """
+
+        unsaved: bool = self.id is None
+
+        if unsaved:
+            super().save(*args, **kwargs)
+
             default_calendar = ScheduleCalendar.objects.create(
                 name="Default Calendar", owner=self
             )
+
             self.last_viewed_cal = default_calendar
-            super().save(
-                force_insert=force_insert,
-                force_update=force_update,
-                using=using,
-                update_fields=update_fields,
-            )
+            self.save()
 
         else:
-            super().save(
-                force_insert=force_insert,
-                force_update=force_update,
-                using=using,
-                update_fields=update_fields,
-            )
+            super().save(*args, **kwargs)
 
 
 class Tasks(models.Model):
@@ -104,7 +101,7 @@ class ScheduleCalendar(models.Model):
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="schedule_cals", blank=True
     )
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
 
     def __str__(self):
         return f"{self.owner}'s {self.name} calendar"
@@ -114,9 +111,15 @@ class ScheduleCalendar(models.Model):
         return self.schedule_set.values("id", "name", "value")
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        for i in range(8):
-            schedule = Schedule.objects.create(calendar=self, name=str(i))
+        unsaved = self.id is None
+
+        if unsaved:  # populate newly created calendar
+            super().save(*args, **kwargs)
+            for i in range(8):
+                schedule = Schedule.objects.create(calendar=self, name=str(i))
+
+        else:
+            super().save(*args, **kwargs)
 
 
 class DailyEvent(models.Model):
@@ -134,10 +137,9 @@ class DailyEvent(models.Model):
     class Meta:
         ordering = ["start_time"]
 
-    def save(self,*args, **kwargs):
+    def save(self, *args, **kwargs):
+        unsaved: bool = self.id is None
 
-        unsaved = self.id is None
-        
         if unsaved:
             other_events = self.schedule.events_set
         else:
@@ -145,22 +147,19 @@ class DailyEvent(models.Model):
 
         for other_event in other_events:
             if (
-                self.start_time == other_event.start_time or 
-                self.end_time  == other_event.end_time or
-                other_event.start_time < self.start_time < other_event.end_time
+                self.start_time == other_event.start_time
+                or self.end_time == other_event.end_time
+                or other_event.start_time < self.start_time < other_event.end_time
                 or other_event.start_time < self.end_time < other_event.end_time
             ):
-                raise ValueError("Bad times") #describe this
-            
-         # if the end_time is less than the start_time ie start something today and end tomorrow return false
+                raise ValueError("Bad times")  # describe this
+
+        # if the end_time is less than the start_time ie start something today and end tomorrow return false
         if self.start_time >= self.end_time:
-            raise ValueError("Bad times") #describe this
+            raise ValueError("Bad times")  # describe this
 
         else:
             super().save(*args, **kwargs)
-
-        
-            
 
 
 class MiscEvent(models.Model):

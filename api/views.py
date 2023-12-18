@@ -23,7 +23,6 @@ class ScheduleCalendarList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # remove this point of failure
         calendars = ScheduleCalendar.objects.filter(owner=request.user)
 
         if calendars:
@@ -40,8 +39,6 @@ class ScheduleCalendarList(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-
-
 
 # implement update and delete
 class ScheduleCalendarItem(APIView):
@@ -222,17 +219,7 @@ class DailyEventList(APIView):
 
                 except ValueError:
                     return Response("INvalid times", status=status.HTTP_400_BAD_REQUEST)
-
-                """ if check_time_clash(
-                    None,
-                    serializer.validated_data["start_time"],
-                    serializer.validated_data["end_time"],
-                    schedule
-                ):
-                    newly_created = serializer.save(schedule=schedule)
-                    new_serializer = EventSerializer(newly_created)
-                    return Response(new_serializer.data) """
-                
+    
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
             
 

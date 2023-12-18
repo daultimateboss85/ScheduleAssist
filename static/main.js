@@ -135,25 +135,8 @@ function load_schedule(schedule){
 
             // event listener
             // click on box triggers procedure to add an event
-
-            event_box.addEventListener("click", function(){
-
-                // form to submit
-                let form = document.createElement("form");
-                form.setAttribute("action", `/`)
-                //form.setAttribute("method", "post");
-                form.classList.add("form");
-                let form_container = document.createElement("div");
-                
-                form.append(form_container)
-                form_container.classList.add("form-container");
-
-                let title_input = document.createElement("input");
-                form_container.append(title_input);
-
-                event_box.append(form);
-                
-            })
+            event_box.addEventListener("click", (event) => clickemptybox(event, Number(name), i))
+     
         }
 
 
@@ -221,4 +204,34 @@ function parse_time(event){
         crossover = 0;
     }
     return [start_hour, start_minute, time_difference, hour_difference, crossover];
+}
+
+function clickemptybox(event , schedule_number, box_number){
+    event.stopPropagation();
+    // use schedule number and box number to locate box which was clicked
+   
+    event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`)
+
+    // form to submit
+    let form = document.createElement("form");
+    form.setAttribute("action", `/`)
+    //form.setAttribute("method", "post");
+    form.classList.add("form");
+    let form_container = document.createElement("div");
+    
+    form.append(form_container)
+    form_container.classList.add("form-container");
+
+    let title_input = document.createElement("input");
+    form_container.append(title_input);
+
+    event_box.append(form);
+
+    form.addEventListener("click", (event)=>{
+        event.stopPropagation();
+    })
+
+    window.addEventListener("click",()=>{
+        form.style.display = "none";
+    })
 }
