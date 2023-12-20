@@ -174,7 +174,7 @@ class ScheduleCalendarItemViewTestCase(GenTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["name"], "Gym Calendar")
 
-    def test_put_changing_name_invaliddata(self):
+    def test_put_changing_name_invalid_data(self):
         """Ensure appropriate response is returned"""
 
         cal_id = ScheduleCalendar.objects.get(owner=self.owner, name="School Calendar").id
@@ -184,7 +184,7 @@ class ScheduleCalendarItemViewTestCase(GenTest):
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
-    def test_delete_validid(self):
+    def test_delete_valid_id(self):
         """Ensure ability to delete calendars"""
 
         cal_id = ScheduleCalendar.objects.get(owner=self.owner, name="School Calendar").id 

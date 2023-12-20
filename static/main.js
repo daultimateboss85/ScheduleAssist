@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
     //load home page immediately after displaying last viewed calendar or default calendar if none
     load_home();
+
+    
 })
 
 const DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
@@ -179,8 +181,48 @@ function load_schedule(schedule){
     })
 }
         
+function clickemptybox(event , schedule_number, box_number, ){
+    //clear other popups on screen
+    clear_popups();
+    // use schedule number and box number to locate box which was clicked   
+    event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`)
+
+    // form to submit
+    let form = document.createElement("form");
+    form.setAttribute("action", `/`)
+    //form.setAttribute("method", "post");
+    form.classList.add("popup-form");
+    let form_container = document.createElement("div");
+    
+    form.append(form_container)
+    form_container.classList.add("popup-form-container");
+
+    let title_input = document.createElement("input");
+    form_container.append(title_input);
+
+    //add form to box
+    event_box.append(form);
 
 
+    form.addEventListener("click", (e)=>{
+        //stop other click events happening when workin on the form
+        e.stopPropagation();
+      
+    })
+    
+    form.style.display = "block";
+
+}
+
+function clear_popups(){
+    // clicking anywhere removes popup forms
+    let popups = document.querySelectorAll(".popup-form");
+    popups.forEach((form)=>{
+        form.style.display = "none";
+    }) 
+    
+    // window.removeEventListener("click", clear_popups);
+}
 function parse_time(event){
     // parsing event start and end times
     const start_time = event["start_time"];
@@ -206,32 +248,3 @@ function parse_time(event){
     return [start_hour, start_minute, time_difference, hour_difference, crossover];
 }
 
-function clickemptybox(event , schedule_number, box_number){
-    event.stopPropagation();
-    // use schedule number and box number to locate box which was clicked
-   
-    event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`)
-
-    // form to submit
-    let form = document.createElement("form");
-    form.setAttribute("action", `/`)
-    //form.setAttribute("method", "post");
-    form.classList.add("form");
-    let form_container = document.createElement("div");
-    
-    form.append(form_container)
-    form_container.classList.add("form-container");
-
-    let title_input = document.createElement("input");
-    form_container.append(title_input);
-
-    event_box.append(form);
-
-    form.addEventListener("click", (event)=>{
-        event.stopPropagation();
-    })
-
-    window.addEventListener("click",()=>{
-        form.style.display = "none";
-    })
-}

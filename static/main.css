@@ -114,7 +114,7 @@
     
 }
 
-.form{
+.popup-form{
     position: absolute;
     width: 100%;
     top: 0;
@@ -124,7 +124,7 @@
   
 }
 
-.form-container{
+.popup-form-container{
     position: relative;
     height: 30vh;
     width: 40vw;
@@ -133,10 +133,10 @@
 }
 
 
-.form-container h2{
-    
+.popup-form-container h2{
+
 }
-.form-container input{
+.popup-form-container input{
     position: relative;
     
 }   
