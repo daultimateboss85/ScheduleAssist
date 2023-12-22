@@ -16,6 +16,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
     //load home page immediately after displaying last viewed calendar or default calendar if none
     load_home();
 
+    //clicking anywhere else clears any popup forms
+    window.addEventListener("click", ()=>{
+        clear_popups();
+    })
     
 })
 
@@ -156,9 +160,17 @@ function load_schedule(schedule){
           
 
             let row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
+            let row_gap_float = Number(row_gap.slice(0,-3)) * 16;
+            console.log("float",row_gap_float);
             let row_height = window.getComputedStyle(document.documentElement).getPropertyValue("--row-height");
+            let row_height_float = Number(row_height.slice(0,-3)) * 16; //convert to pixels by * 16
+            
 
-            event_container.style.height= `${125 * time_difference + 0.15*16*(hour_difference-1 + crossover)}px`;
+            // height = row_height * time_difference + row_gap * (hour_difference-1 + crossover);
+            //rowheight * timedifference - makes sure height of event is proportional to time it take,
+            //row_gap blah blah blah takes into account gaps in grid
+
+            event_container.style.height= `${row_height_float* time_difference + row_gap_float*(hour_difference-1 + crossover)}px`;
 
             to_place.append(event_container);
             event_container.classList.add("event-container");
@@ -182,16 +194,31 @@ function load_schedule(schedule){
 }
         
 function clickemptybox(event , schedule_number, box_number, ){
+    event.stopPropagation();
     //clear other popups on screen
     clear_popups();
     // use schedule number and box number to locate box which was clicked   
     event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`)
 
-    // form to submit
+    // popup form to submit ------------------------------------------------------
     let form = document.createElement("form");
     form.setAttribute("action", `/`)
     //form.setAttribute("method", "post");
-    form.classList.add("popup-form");
+
+  
+    // if x coordinate is more than half the screen width popup to left of box instead of to right of box 
+    let x = event.clientX;
+    let screen_size = window.innerWidth/2;
+    form.classList.add("popup-form","animate")
+
+    if (x > screen_size){
+        form.style.left = "-233%";
+        form.classList.add("slideInRight");
+    }else{
+        form.classList.add("slideInLeft");
+    }
+
+    // form container -----------------------------------------------------
     let form_container = document.createElement("div");
     
     form.append(form_container)
@@ -199,9 +226,9 @@ function clickemptybox(event , schedule_number, box_number, ){
 
     let title_input = document.createElement("input");
     form_container.append(title_input);
-
     //add form to box
     event_box.append(form);
+    title_input.focus();
 
 
     form.addEventListener("click", (e)=>{
@@ -218,11 +245,11 @@ function clear_popups(){
     // clicking anywhere removes popup forms
     let popups = document.querySelectorAll(".popup-form");
     popups.forEach((form)=>{
+        form.classList.add("disappear");
         form.style.display = "none";
     }) 
-    
-    // window.removeEventListener("click", clear_popups);
 }
+
 function parse_time(event){
     // parsing event start and end times
     const start_time = event["start_time"];
