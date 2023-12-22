@@ -11,6 +11,9 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path("", views.getRoutes),
 
+    #get / set lastviewed calendar
+    path("LastViewedCalendar/", views.LastViewedCalendar.as_view(), name="last-calendar"),
+
     #get schedulecalendars, make new ones
     path("ScheduleCalendars/", views.ScheduleCalendarList.as_view(), name="schedulecalendar-list"),
 

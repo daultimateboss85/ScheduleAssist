@@ -7,12 +7,45 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from .utils import get_calendar, get_schedule, get_event, check_time_clash
+from .utils import get_calendar, get_schedule, get_event
 
 
 @api_view(["GET"])
 def getRoutes(request):
     return Response("Under construction")
+
+
+class LastViewedCalendar(APIView):
+    """
+    Set and get persons last viewed calendar
+    """ 
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Get user's last viewed calendar"""
+
+        last_viewed_calendar = request.user.last_viewed_cal #this should always return a calendar as calendars are created upon user creation
+        
+        if last_viewed_calendar:
+            return Response({"id":last_viewed_calendar.id})
+        
+        return Response("No last viewed Calendar",status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request):
+        """Set last viewed calendar"""
+        id = request.data.get("id", None)
+
+        if id:
+            cal = get_calendar(request, int(id))
+
+            if cal:
+                request.user.last_viewed_cal = cal
+                request.user.save()
+
+                return Response("Last calendar set")
+    
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class ScheduleCalendarList(APIView):

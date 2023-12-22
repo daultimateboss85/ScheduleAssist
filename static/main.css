@@ -51,6 +51,19 @@
 
 
 /* different parts of calendar grid */
+
+.label-col, .schedule-col{
+    display: grid;
+    grid-template-rows: 70px auto;
+    row-gap: var(--row-gap);
+}
+
+
+.label, .schedule-name{
+    display: grid;
+    background-color: #f3f6f9;
+}
+
 .label-items, .event-col{
     background-color: var(--gap-color);
     display: grid;
@@ -60,18 +73,7 @@
     align-items: stretch; 
 }
 
-
-.label-col, .schedule-col{
-    display: grid;
-    grid-template-rows: 70px auto;
-    row-gap: var(--row-gap);
-}
-
 /* different "boxes" in calendar labels and events */
-.label, .schedule-name{
-    display: grid;
-    background-color: #f3f6f9;
-}
 
 .label{     
     font-size: xx-small;
@@ -142,6 +144,10 @@
     
 }   
 
+
+.sidebar-item{
+
+}
 /* utility classes */
 
 .animate{

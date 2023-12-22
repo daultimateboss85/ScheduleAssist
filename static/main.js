@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     .then(res => res.json())
     .then(result => {
         localStorage.setItem("token", result["access"])
-        console.log(result)
+        console.log(result);
     })
 
     //load home page immediately after displaying last viewed calendar or default calendar if none
@@ -27,16 +27,79 @@ const DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
 function load_home(){
     //initial calendar load when user logs in
-    //somehow get last viewed calendar id
-    let last_viewed = 7;
+    //get last viewed calendar id, that is the calendar that will be loaded on browser load
+    fetch("api/LastViewedCalendar/",{
+    headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+    }})
+    .then(res => res.json())
+    .then(result => {
+        var last_viewed = result["id"];
+        
+        //load a calendar
+        load_calendar(last_viewed); 
+        console.log(last_viewed);
 
-    //set up sidebar and top bar
+        //settin up sidebar- getting all user calendars and displaying them----------------------------------
+        fetch("api/ScheduleCalendars/",{
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        })
+        .then(res => res.json())
+        .then(result => {
+            console.log(result);
 
+            let sidebar = document.querySelector("#sidebar");
 
-    //load a calendar
-    load_calendar(last_viewed);
+            //putting calendars into sidebar ------------------------------------------
+            result.forEach((calendar) =>{
+                let cal_container = document.createElement("div");
+                sidebar.append(cal_container);
+                cal_container.classList.add(".sidebar-item")
+                cal_container.innerHTML += calendar.name;
+
+                if (calendar.id == last_viewed){
+                    cal_container.style.backgroundColor = "grey";
+                }
+                
+                //adding event listener so when calendar is clicked it loads calendar --------------------------
+                cal_container.addEventListener("click", ()=>{
+                    //change last viewed calendar to clicked one then reload
+                    fetch("api/LastViewedCalendar/", {
+                        method :"PUT",
+                        headers:{
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            "Content-Type": "application/json"
+                        },
+                        body:JSON.stringify({"id": calendar.id})
+                        
+                    })
+                    .then(res => res.json())
+                    .then(result => {
+                        //clear places that need to be cleared 
+                        //clear_screen();
+                        load_home();
+                    })
+                })
+            })
+        })
+        })
+
+    
 }
 
+function clear_screen(){
+    // clear screen mainly for calendar switching
+
+    //clear sidebar
+    document.querySelector("#sidebar").innerHTML = "";
+    //clear grid
+    document.querySelector(".label-col").style.display = "none";
+
+    document.querySelectorAll(".schedule-col").style.display = "none";
+
+}
 
 function load_calendar(cal_id){
     fetch( `api/ScheduleCalendars/${cal_id}`,{
@@ -109,14 +172,12 @@ function load_schedule(schedule){
         })
     .then( res => res.json())
     .then(schedule => {
-        console.log(schedule);
-        
         //main part of calendar --------------------------------------------------------------
         let schedule_column = document.querySelector(`#schedule${Number(name)}`);
 
         schedule_column.classList.add("schedule-col");
 
-        //title's of columns
+        //title's of columns----------------------------------------
         let title_container = document.createElement("div");
         schedule_column.append(title_container);
         title_container.classList.add("schedule-name");
@@ -129,7 +190,7 @@ function load_schedule(schedule){
         schedule_column.append(event_column);
         event_column.classList.add("event-col");
 
-        //event boxes
+        //event boxes ----------------------------------------------------
         for (let i=0; i<24; i++){
             let event_box = document.createElement("div");
             event_column.append(event_box);
@@ -139,7 +200,7 @@ function load_schedule(schedule){
 
             event_box.classList.add("event-box");
 
-            // event listener
+            // event listener---------------------------------------------------------
             // click on box triggers procedure to add an event
             event_box.addEventListener("click", (event) => clickemptybox(event, Number(name), i))
      
@@ -148,6 +209,7 @@ function load_schedule(schedule){
 
         const events = schedule["events"];
 
+        //placing events on grid ----------------------------------------------------------------------
         events.forEach((event_object, index) =>{
         
             const start = Number(event_object["start_time"].substr(0,2));
@@ -158,10 +220,10 @@ function load_schedule(schedule){
             // setting height of event container based on how long event is
             let [start_hour, start_minute, time_difference, hour_difference, crossover] = parse_time(event_object);
           
-
+            //getting needed variables
             let row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
             let row_gap_float = Number(row_gap.slice(0,-3)) * 16;
-            console.log("float",row_gap_float);
+        
             let row_height = window.getComputedStyle(document.documentElement).getPropertyValue("--row-height");
             let row_height_float = Number(row_height.slice(0,-3)) * 16; //convert to pixels by * 16
             

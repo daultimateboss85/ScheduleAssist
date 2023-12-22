@@ -9,6 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CalendarSerializer(serializers.ModelSerializer):
+    #adding schedules so i can get all events that belong to a schedule without doing multiple calls
     schedules = serializers.SerializerMethodField()
 
     class Meta:
@@ -23,6 +24,7 @@ class CalendarSerializer(serializers.ModelSerializer):
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
+    #adding events so i can get all events that belong to a schedule without doing multiple calls
     events = serializers.SerializerMethodField()
 
     class Meta:
@@ -55,6 +57,7 @@ class EventSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
         if self.instance:
+            #changing the representation of start and end times here for easy displaying on front end
             try:
                 for object in self.instance:
                     object.start_time = object.start_time.strftime("%H:%M")
