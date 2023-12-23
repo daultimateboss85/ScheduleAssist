@@ -244,11 +244,12 @@ function load_schedule(schedule){
             title_container.innerHTML += `${event_object["title"]}`;
 
             // time of event
+            if (time_difference >= 0.25){
             let time_container = document.createElement("div");
             event_container.append(time_container);
             time_container.classList.add("event-time");
             time_container.innerHTML += `${event_object["start_time"]}-${event_object["end_time"]}`;
-
+            }
         }) 
         
     })
