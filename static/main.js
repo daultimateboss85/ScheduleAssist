@@ -23,9 +23,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
     
 })
 
-const DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+let DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
 function load_home(){
+    console.log("loading home");
     //initial calendar load when user logs in
     //get last viewed calendar id, that is the calendar that will be loaded on browser load
     fetch("api/LastViewedCalendar/",{
@@ -34,11 +35,10 @@ function load_home(){
     }})
     .then(res => res.json())
     .then(result => {
-        var last_viewed = result["id"];
+        let last_viewed = result["id"];
         
         //load a calendar
         load_calendar(last_viewed); 
-        console.log(last_viewed);
 
         //settin up sidebar- getting all user calendars and displaying them----------------------------------
         fetch("api/ScheduleCalendars/",{
@@ -56,7 +56,7 @@ function load_home(){
             result.forEach((calendar) =>{
                 let cal_container = document.createElement("div");
                 sidebar.append(cal_container);
-                cal_container.classList.add(".sidebar-item")
+                cal_container.classList.add(".sidebar-item");
                 cal_container.innerHTML += calendar.name;
 
                 if (calendar.id == last_viewed){
@@ -78,7 +78,7 @@ function load_home(){
                     .then(res => res.json())
                     .then(result => {
                         //clear places that need to be cleared 
-                        //clear_screen();
+                        clear_screen();
                         load_home();
                     })
                 })
@@ -95,9 +95,9 @@ function clear_screen(){
     //clear sidebar
     document.querySelector("#sidebar").innerHTML = "";
     //clear grid
-    document.querySelector(".label-col").style.display = "none";
+    document.querySelector(".label-col").innerHTML =  "";
 
-    document.querySelectorAll(".schedule-col").style.display = "none";
+    document.querySelectorAll(".schedule-col").forEach(column => column.innerHTML = "");
 
 }
 
@@ -109,8 +109,6 @@ function load_calendar(cal_id){
     })
     .then(res => res.json())
     .then(result => {
-
-    console.log(result);
 
     //grid that holds calendar
     let calendar_grid = document.querySelector("#calendar-grid");
@@ -149,7 +147,7 @@ function load_calendar(cal_id){
 
     //LOADING SCHEDULES --------------------------------------------------------------
     let name = ""; 
-        const schedules = result["schedules"];
+        let schedules = result["schedules"];
         for(let i = 0; i < schedules.length; i++){
             //iterate through schedules picking only main schedule 
             let schedule = schedules[i];
@@ -164,7 +162,7 @@ function load_calendar(cal_id){
 
 
 function load_schedule(schedule){
-    const name = schedule["name"];
+    let name = schedule["name"];
     fetch(`api/Schedule/${schedule["id"]}`, {
         headers:{
             Authorization:`Bearer ${localStorage.getItem("token")}`
@@ -172,9 +170,9 @@ function load_schedule(schedule){
         })
     .then( res => res.json())
     .then(schedule => {
+        console.log(schedule);
         //main part of calendar --------------------------------------------------------------
         let schedule_column = document.querySelector(`#schedule${Number(name)}`);
-
         schedule_column.classList.add("schedule-col");
 
         //title's of columns----------------------------------------
@@ -195,7 +193,7 @@ function load_schedule(schedule){
             let event_box = document.createElement("div");
             event_column.append(event_box);
 
-            event_box.setAttribute("data-schedule", `schedule${schedule["id"]}`);
+            event_box.setAttribute("data-schedule", `${schedule["id"]}`);
             event_box.setAttribute("data-event", `${i}`);
 
             event_box.classList.add("event-box");
@@ -206,14 +204,14 @@ function load_schedule(schedule){
      
         }
 
-
-        const events = schedule["events"];
+        
+        let events = schedule["events"];
 
         //placing events on grid ----------------------------------------------------------------------
-        events.forEach((event_object, index) =>{
+        events.forEach((event_object) =>{
         
-            const start = Number(event_object["start_time"].substr(0,2));
-            let to_place = document.querySelector(`div[data-event="${start}"]`);
+            let start = Number(event_object["start_time"].substr(0,2));
+            let to_place = document.querySelector(`div[data-event="${start}"][data-schedule="${schedule["id"]}"]`);
 
             // container of event
             let event_container = document.createElement("div");
@@ -233,7 +231,8 @@ function load_schedule(schedule){
             //row_gap blah blah blah takes into account gaps in grid
 
             event_container.style.height= `${row_height_float* time_difference + row_gap_float*(hour_difference-1 + crossover)}px`;
-
+            
+            //offsetting by needed amount
             to_place.append(event_container);
             event_container.classList.add("event-container");
 
@@ -314,8 +313,8 @@ function clear_popups(){
 
 function parse_time(event){
     // parsing event start and end times
-    const start_time = event["start_time"];
-    const end_time = event["end_time"];
+    let start_time = event["start_time"];
+    let end_time = event["end_time"];
 
     let start_hour = Number(start_time.substr(0,2));
     let end_hour = Number(end_time.substr(0,2));

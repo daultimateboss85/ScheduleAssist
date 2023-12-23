@@ -108,6 +108,7 @@ class ScheduleCalendar(models.Model):
 
     @property
     def schedules_set(self):
+        #return id, name, values of all schedules in calendar
         return self.schedule_set.values("id", "name", "value")
 
     def save(self, *args, **kwargs):

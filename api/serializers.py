@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CalendarSerializer(serializers.ModelSerializer):
-    #adding schedules so i can get all events that belong to a schedule without doing multiple calls
+    #adding schedules so i can get all schedules that belong to a calendar without making multiple calls
     schedules = serializers.SerializerMethodField()
 
     class Meta:
