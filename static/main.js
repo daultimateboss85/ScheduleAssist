@@ -56,7 +56,7 @@ function load_home(){
             result.forEach((calendar) =>{
                 let cal_container = document.createElement("div");
                 sidebar.append(cal_container);
-                cal_container.classList.add(".sidebar-item");
+                cal_container.classList.add("sidebar-item");
                 cal_container.innerHTML += calendar.name;
 
                 if (calendar.id == last_viewed){
@@ -209,14 +209,13 @@ function load_schedule(schedule){
 
         //placing events on grid ----------------------------------------------------------------------
         events.forEach((event_object) =>{
-        
-            let start = Number(event_object["start_time"].substr(0,2));
-            let to_place = document.querySelector(`div[data-event="${start}"][data-schedule="${schedule["id"]}"]`);
+            let [start_hour, start_minute, time_difference, hour_difference, crossover] = parse_time(event_object);
+            
+            let to_place = document.querySelector(`div[data-event="${start_hour}"][data-schedule="${schedule["id"]}"]`);
 
             // container of event
             let event_container = document.createElement("div");
             // setting height of event container based on how long event is
-            let [start_hour, start_minute, time_difference, hour_difference, crossover] = parse_time(event_object);
           
             //getting needed variables
             let row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
@@ -232,10 +231,20 @@ function load_schedule(schedule){
 
             event_container.style.height= `${row_height_float* time_difference + row_gap_float*(hour_difference-1 + crossover)}px`;
             
-            //offsetting by needed amount
+            
             to_place.append(event_container);
             event_container.classList.add("event-container");
 
+            //offsetting by needed amount
+            let offset = (row_height_float * start_minute / 60).toFixed(0);
+        
+            // if (start_minute != 0){
+            //     offset -= 1;
+            // }
+
+            console.log("event", event_object["title"], "offset", offset, "start minute", start_minute);
+            event_container.style.top = `${offset}px` ;
+            
 
             // title of event
             let title_container = document.createElement("div");
@@ -244,11 +253,14 @@ function load_schedule(schedule){
             title_container.innerHTML += `${event_object["title"]}`;
 
             // time of event
+            //add if event length is 15 min or greatere
+
+            if (time_difference >= 0.25){
             let time_container = document.createElement("div");
             event_container.append(time_container);
             time_container.classList.add("event-time");
             time_container.innerHTML += `${event_object["start_time"]}-${event_object["end_time"]}`;
-
+            }
         }) 
         
     })
@@ -333,6 +345,7 @@ function parse_time(event){
     else{
         crossover = 0;
     }
+
     return [start_hour, start_minute, time_difference, hour_difference, crossover];
 }
 

@@ -94,25 +94,27 @@
     background-color: #f3f6f9;
     height: var(--row-height);
     position: relative;
-    cursor: pointer;
-   
+    cursor: pointer;   
 }
 
 .event-container{
-    position: relative;
+    position: absolute;
     border : solid 1px black;
     font-size: 0.75rem;
+    top: 0;
     background-color: lightblue; 
     z-index: 2;
     
 }
 
 .event-title{
+    position: relative;
     background-color: lightblue; 
     
 }
 
 .event-time{
+    position: relative;
     background-color: lightblue; 
     
 }
