@@ -10,10 +10,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
     .then(res => res.json())
     .then(result => {
         localStorage.setItem("token", result["access"])
-        console.log(result);
+        //console.log(result);
     })
 
-    //load home page immediately after displaying last viewed calendar or default calendar if none
+    //load home page immediately upon visit
     load_home();
 
     //clicking anywhere else clears any popup forms
@@ -21,9 +21,11 @@ document.addEventListener("DOMContentLoaded", ()=>{
         clear_popups();
     })
     
+    let divs = document.querySelectorAll(`div`);
+    console.log("divs", divs.length);
 })
 
-let DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+const DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
 function load_home(){
     console.log("loading home");
@@ -40,6 +42,7 @@ function load_home(){
         //load a calendar
         load_calendar(last_viewed); 
 
+
         //settin up sidebar- getting all user calendars and displaying them----------------------------------
         fetch("api/ScheduleCalendars/",{
             headers: {
@@ -48,7 +51,7 @@ function load_home(){
         })
         .then(res => res.json())
         .then(result => {
-            console.log(result);
+            //console.log(result);
 
             let sidebar = document.querySelector("#sidebar");
 
@@ -85,20 +88,6 @@ function load_home(){
             })
         })
         })
-
-    
-}
-
-function clear_screen(){
-    // clear screen mainly for calendar switching
-
-    //clear sidebar
-    document.querySelector("#sidebar").innerHTML = "";
-    //clear grid
-    document.querySelector(".label-col").innerHTML =  "";
-
-    document.querySelectorAll(".schedule-col").forEach(column => column.innerHTML = "");
-
 }
 
 function load_calendar(cal_id){
@@ -157,9 +146,11 @@ function load_calendar(cal_id){
                 load_schedule(schedule);
             } 
         }
+    
+
+
     })
 }
-
 
 function load_schedule(schedule){
     let name = schedule["name"];
@@ -170,7 +161,7 @@ function load_schedule(schedule){
         })
     .then( res => res.json())
     .then(schedule => {
-        console.log(schedule);
+        //console.log(schedule);
         //main part of calendar --------------------------------------------------------------
         let schedule_column = document.querySelector(`#schedule${Number(name)}`);
         schedule_column.classList.add("schedule-col");
@@ -200,7 +191,7 @@ function load_schedule(schedule){
 
             // event listener---------------------------------------------------------
             // click on box triggers procedure to add an event
-            event_box.addEventListener("click", (event) => clickemptybox(event, Number(name), i))
+            event_box.addEventListener("click", (event) => clickbox(event, Number(name), i, "box"))
      
         }
 
@@ -208,15 +199,16 @@ function load_schedule(schedule){
         let events = schedule["events"];
 
         //placing events on grid ----------------------------------------------------------------------
-        events.forEach((event_object) =>{
-            let [start_hour, start_minute, time_difference, hour_difference, crossover] = parse_time(event_object);
+        events.forEach((event_object, index) =>{
+            let [start_hour, start_minute, time_difference, hour_difference, crossover,end_hour, end_minute ] = parse_time(event_object);
             
             let to_place = document.querySelector(`div[data-event="${start_hour}"][data-schedule="${schedule["id"]}"]`);
 
             // container of event
             let event_container = document.createElement("div");
+            event_container.setAttribute("data-eventid", event_object["id"]);
+            
             // setting height of event container based on how long event is
-          
             //getting needed variables
             let row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
             let row_gap_float = Number(row_gap.slice(0,-3)) * 16;
@@ -229,22 +221,48 @@ function load_schedule(schedule){
             //rowheight * timedifference - makes sure height of event is proportional to time it take,
             //row_gap blah blah blah takes into account gaps in grid
 
-            event_container.style.height= `${row_height_float* time_difference + row_gap_float*(hour_difference-1 + crossover)}px`;
-            
-            
-            to_place.append(event_container);
+            event_container.style.height= `${row_height_float* time_difference + row_gap_float*(hour_difference-1 + crossover) + 1}px`;
+        
             event_container.classList.add("event-container");
 
-            //offsetting by needed amount
-            let offset = (row_height_float * start_minute / 60).toFixed(0);
-        
-            // if (start_minute != 0){
-            //     offset -= 1;
-            // }
+           
+            /* We want event boxes to line up nicely. however using absolute positioning everywhere brings out the inaccuracies using calculations
+            We then want to use position relative if event has a prior one so that it is placed immediately after prior event,
+            however events without prior events or those with prior events that are absolutely positioned will fall to the top, 
+            means we want to conditionally render  */
 
-            console.log("event", event_object["title"], "offset", offset, "start minute", start_minute);
-            event_container.style.top = `${offset}px` ;
+            /* if event has immediate prior event that starts in the same box or start minute = 0 use position relative and no offset
+            else add an offset to top*/
+
+            let offset;
+
+            if ( index != 0 ){
+                let previous = events[index -1];
+                let args = parse_time(previous);
+                let prev_start_hour = args[0];
+                let prev_end_minute = args[args.length-1];
+                
+                if (start_minute == 0 || (prev_start_hour == start_hour && prev_end_minute == start_minute)){
+                    // event_container.style.position = "relative";
+                    console.log("hello")
+                }else{
+                    //offsetting by needed amount
+                    offset = (row_height_float * start_minute / 60).toFixed(0);
+                    event_container.style.top = `${offset - 2}px` ;             
+                }
+            }
+
+            else{
+                offset = (row_height_float * start_minute / 60).toFixed(0);
+                    event_container.style.top = `${offset}px` ;
+            }
+
+            to_place.append(event_container);
             
+            //adding eventlistener to events
+            //such that when events are clicked form pops up immediately to their side and form is prepopulated
+            event_container.addEventListener("click", (event) => clickbox(event, Number(name), start_hour,  "event",event_object["id"]))
+
 
             // title of event
             let title_container = document.createElement("div");
@@ -266,25 +284,41 @@ function load_schedule(schedule){
     })
 }
         
-function clickemptybox(event , schedule_number, box_number, ){
+function clickbox(event , schedule_number, box_number, box_or_event, event_id){
+    /* caters to both clicking an empty box or clicking an event
+    box_or_container - differentiates whether box or event */
     event.stopPropagation();
     //clear other popups on screen
     clear_popups();
-    // use schedule number and box number to locate box which was clicked   
-    event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`)
+    // use schedule number and box number to locate box which was clicked  
+    let event_box;
+    
+    if (box_or_event == "box"){
+        event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`);
+    }else{
+        if(box_or_event == "event"){
+            event_box = document.querySelector(`div[data-eventid="${event_id}"]`);
+        }
+    }
+
+    console.log("event ob", event_box);
 
     // popup form to submit ------------------------------------------------------
     let form = document.createElement("form");
+    event_box.append(form);
+    
+
+    form.classList.add("popup-form","animate");
+
     form.setAttribute("action", `/`)
     //form.setAttribute("method", "post");
 
   
     // if x coordinate is more than half the screen width popup to left of box instead of to right of box 
     let x = event.clientX;
-    let screen_size = window.innerWidth/2;
-    form.classList.add("popup-form","animate")
+    let half_screen_size = window.innerWidth/2;
 
-    if (x > screen_size){
+    if (x > half_screen_size){
         form.style.left = "-233%";
         form.classList.add("slideInRight");
     }else{
@@ -300,17 +334,34 @@ function clickemptybox(event , schedule_number, box_number, ){
     let title_input = document.createElement("input");
     form_container.append(title_input);
     //add form to box
-    event_box.append(form);
     title_input.focus();
 
 
     form.addEventListener("click", (e)=>{
         //stop other click events happening when workin on the form
         e.stopPropagation();
+
+        // let current = document.querySelector(`#schedule3 div[data-event="22"]`);
+        // console.log("current", current);
+        // current.scrollIntoView({ behavior: "smooth"});
       
     })
     
-    form.style.display = "block";
+    //form.style.display = "block";
+   
+}
+
+
+
+function clear_screen(){
+    // clear screen mainly for calendar switching
+
+    //clear sidebar
+    document.querySelector("#sidebar").innerHTML = "";
+    //clear grid
+    document.querySelector(".label-col").innerHTML =  "";
+
+    document.querySelectorAll(".schedule-col").forEach(column => column.innerHTML = "");
 
 }
 
@@ -346,6 +397,6 @@ function parse_time(event){
         crossover = 0;
     }
 
-    return [start_hour, start_minute, time_difference, hour_difference, crossover];
+    return [start_hour, start_minute, time_difference, hour_difference, crossover, end_hour, end_minute];
 }
 

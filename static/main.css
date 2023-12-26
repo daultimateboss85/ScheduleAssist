@@ -87,7 +87,7 @@
     position: sticky;
     top: 0;
     border-bottom: solid var(--row-gap) var(--gap-color);
-    z-index: 10;
+    z-index: 30;
 }
 
 .event-box{
@@ -98,25 +98,22 @@
 }
 
 .event-container{
-    position: absolute;
+    position: relative;
     border : solid 1px black;
     font-size: 0.75rem;
-    top: 0;
     background-color: lightblue; 
-    z-index: 2;
+    z-index: 3;
     
 }
 
 .event-title{
     position: relative;
-    background-color: lightblue; 
-    
+
 }
 
 .event-time{
     position: relative;
-    background-color: lightblue; 
-    
+ 
 }
 
 .popup-form{
@@ -125,16 +122,15 @@
     top: 0;
     left: 105%;
     background-color: blanchedalmond;
-    z-index: 5;
     cursor: default;
+    z-index: 20;
 }
 
 .popup-form-container{
-    position: relative;
+    position: absolute;
     height: 30vh;
     width: 25vw;
     background-color: blanchedalmond;
-    z-index: 10;
 }
 
 
@@ -154,17 +150,20 @@
 
 .animate{
     animation-duration: 500ms;
+    /* animation-fill-mode: both; */
 }
 
 @keyframes slideInLeft{
     0%{
         transform: translateX(-3rem);
-        opacity: 0%; 
+        opacity: 0%;
+       
     }
 
     100%{
         opacity: 100%;
         transform: translateX(0); 
+        /* z-index: 20; */
     }
 }
 
