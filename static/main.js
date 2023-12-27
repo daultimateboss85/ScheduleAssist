@@ -275,63 +275,88 @@ function load_schedule(schedule){
         
 function clickbox(event , schedule_number, box_number, box_or_event, offset, event_details ){
     /* caters to both clicking an empty box or clicking an event
-    box_or_container - differentiates whether box or event */
+    box_or_event - differentiates whether box or event */
     event.stopPropagation();
+    
     //clear other popups on screen
     clear_popups();
+    
     // use schedule number and box number to locate box which was clicked  
     let event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`);
-    console.log("event ob", event_box);
 
     // popup form to submit ------------------------------------------------------
-    let form = document.createElement("form");
+    let form = create_Form();
     event_box.append(form);
     
+    //if event was clicked then shift the form to meet the event
     if (box_or_event == "event"){
         form.style.top = `${offset}px`;
     }
 
     form.classList.add("popup-form","animate");
-
-    form.setAttribute("action", `/`)
-    //form.setAttribute("method", "post");
-
     // if x coordinate is more than half the screen width popup to left of box instead of to right of box 
     let x = event.clientX;
     let half_screen_size = window.innerWidth/2;
 
     if (x > half_screen_size){
-        form.style.left = "-233%";
+        form.style.left = `-233%`;
         form.classList.add("slideInRight");
     }else{
         form.classList.add("slideInLeft");
     }
 
-    // form container -----------------------------------------------------
-    let form_container = document.createElement("div");
+    // // form container -----------------------------------------------------
+    // let form_container = document.createElement("div");
     
-    form.append(form_container)
-    form_container.classList.add("popup-form-container");
+    // form.append(form_container)
+    // form_container.classList.add("popup-form-container");
 
-    let title_input = document.createElement("input");
-    form_container.append(title_input);
-    //add form to box
-    title_input.focus();
+    // let title_input = document.createElement("input");
+    // form_container.append(title_input);
+    // //add form to box
+    // title_input.focus();
 
 
     form.addEventListener("click", (e)=>{
         //stop other click events happening when workin on the form
         e.stopPropagation();
 
-        // let current = document.querySelector(`#schedule3 div[data-event="22"]`);
-        // console.log("current", current);
-        // current.scrollIntoView({ behavior: "smooth"});
-      
     })
-    
-    //form.style.display = "block";
    
 }
+
+function create_Form(){
+    //Creates forms different if event box or event
+
+    let form = document.createElement("form");
+
+    let top = document.createElement("div");
+    form.append(top);
+
+    top.innerHTML += "&#215;";
+
+    let middle = document.createElement("div");
+    form.append(middle);
+
+    let title_input = document.createElement("input");
+    title_input.setAttribute("placeholder", "Add Title");
+    middle.append(title_input);
+    title_input.focus();
+
+
+    let start_time = document.createElement("input");
+    let end_time = document.createElement("input");
+    middle.append(start_time, end_time);
+
+    let bottom = document.createElement("div");
+    form.append(bottom);
+
+    let description = document.createElement("textarea");
+    bottom.append(description);
+
+    return form;
+}
+
 
 function clear_screen(){
     // clear screen mainly for calendar switching

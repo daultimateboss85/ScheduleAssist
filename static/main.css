@@ -36,6 +36,7 @@
 
 #sidebar{
     background-color: var(--event-boxcolor);
+    padding: 0.5rem;
 }
 
 /* contains calendar grid */
