@@ -24,6 +24,12 @@ document.addEventListener("DOMContentLoaded", ()=>{
     let divs = document.querySelectorAll(`div`);
     console.log("divs", divs.length);
 })
+const row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
+const row_gap_float = Number(row_gap.slice(0,-3)) * 16;
+
+//getting needed variables
+const row_height = window.getComputedStyle(document.documentElement).getPropertyValue("--row-height");
+const row_height_float = Number(row_height.slice(0,-3)) * 16; //convert to pixels by * 16
 
 const DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 
@@ -200,7 +206,7 @@ function load_schedule(schedule){
 
         //placing events on grid ----------------------------------------------------------------------
         events.forEach((event_object, index) =>{
-            let [start_hour, start_minute, time_difference, hour_difference, crossover,end_hour, end_minute ] = parse_time(event_object);
+            let [start_hour, start_minute, time_difference, hour_difference, gap_number,end_hour, end_minute ] = parse_time(event_object);
             
             let to_place = document.querySelector(`div[data-event="${start_hour}"][data-schedule="${schedule["id"]}"]`);
 
@@ -209,19 +215,12 @@ function load_schedule(schedule){
             event_container.setAttribute("data-eventid", event_object["id"]);
             
             // setting height of event container based on how long event is
-            //getting needed variables
-            let row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
-            let row_gap_float = Number(row_gap.slice(0,-3)) * 16;
-        
-            let row_height = window.getComputedStyle(document.documentElement).getPropertyValue("--row-height");
-            let row_height_float = Number(row_height.slice(0,-3)) * 16; //convert to pixels by * 16
-            
-
-            // height = row_height * time_difference + row_gap * (hour_difference-1 + crossover);
+  
+            // height = row_height * time_difference + row_gap * gap_number;
             //rowheight * timedifference - makes sure height of event is proportional to time it take,
             //row_gap blah blah blah takes into account gaps in grid
-
-            event_container.style.height= `${row_height_float* time_difference + row_gap_float*(hour_difference-1 + crossover) + 1}px`;
+            console.log("Event", event_object, "time dif", time_difference , "hour_diff", hour_difference, "gap_number", gap_number);
+            event_container.style.height= `${row_height_float* time_difference + row_gap_float* gap_number}px`;
         
             event_container.classList.add("event-container");
 
@@ -234,34 +233,14 @@ function load_schedule(schedule){
             /* if event has immediate prior event that starts in the same box or start minute = 0 use position relative and no offset
             else add an offset to top*/
 
-            let offset;
-
-            if ( index != 0 ){
-                let previous = events[index -1];
-                let args = parse_time(previous);
-                let prev_start_hour = args[0];
-                let prev_end_minute = args[args.length-1];
-                
-                if (start_minute == 0 || (prev_start_hour == start_hour && prev_end_minute == start_minute)){
-                    // event_container.style.position = "relative";
-                    console.log("hello")
-                }else{
-                    //offsetting by needed amount
-                    offset = (row_height_float * start_minute / 60).toFixed(0);
-                    event_container.style.top = `${offset - 2}px` ;             
-                }
-            }
-
-            else{
-                offset = (row_height_float * start_minute / 60).toFixed(0);
-                    event_container.style.top = `${offset}px` ;
-            }
+            let offset = (row_height_float * start_minute / 60);
+            event_container.style.top = `${offset}px` ;
 
             to_place.append(event_container);
             
             //adding eventlistener to events
             //such that when events are clicked form pops up immediately to their side and form is prepopulated
-            event_container.addEventListener("click", (event) => clickbox(event, Number(name), start_hour,  "event",event_object["id"]))
+            event_container.addEventListener("click", (event) => clickbox(event, Number(name), start_hour,  "event",offset,event_object["id"]))
 
 
             // title of event
@@ -284,29 +263,23 @@ function load_schedule(schedule){
     })
 }
         
-function clickbox(event , schedule_number, box_number, box_or_event, event_id){
+function clickbox(event , schedule_number, box_number, box_or_event, offset, event_details ){
     /* caters to both clicking an empty box or clicking an event
     box_or_container - differentiates whether box or event */
     event.stopPropagation();
     //clear other popups on screen
     clear_popups();
     // use schedule number and box number to locate box which was clicked  
-    let event_box;
-    
-    if (box_or_event == "box"){
-        event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`);
-    }else{
-        if(box_or_event == "event"){
-            event_box = document.querySelector(`div[data-eventid="${event_id}"]`);
-        }
-    }
-
+    let event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`);
     console.log("event ob", event_box);
 
     // popup form to submit ------------------------------------------------------
     let form = document.createElement("form");
     event_box.append(form);
     
+    if (box_or_event == "event"){
+        form.style.top = `${offset}px`;
+    }
 
     form.classList.add("popup-form","animate");
 
@@ -388,15 +361,16 @@ function parse_time(event){
     let time_difference = (end_hour + end_minute/60 )- (start_hour +  start_minute/60);
     let hour_difference = end_hour - start_hour;
 
-    let crossover = Math.abs(end_minute - start_minute);
-    // if an event crosses into a new hour, then extra row gap should be added to it
-    if (crossover != 0 && hour_difference == 1){
+    let crossover;
+
+    if (end_minute != 0){
         crossover = 1;
-    }
-    else{
+    }else{
         crossover = 0;
     }
 
-    return [start_hour, start_minute, time_difference, hour_difference, crossover, end_hour, end_minute];
+    let gap_number = hour_difference - 1 + crossover;
+
+    return [start_hour, start_minute, time_difference, hour_difference, gap_number, end_hour, end_minute];
 }
 

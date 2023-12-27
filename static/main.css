@@ -98,9 +98,10 @@
 }
 
 .event-container{
-    position: relative;
+    position: absolute;
     border : solid 1px black;
     font-size: 0.75rem;
+    width: 100%;
     background-color: lightblue; 
     z-index: 3;
     
