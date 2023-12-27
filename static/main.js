@@ -48,7 +48,6 @@ function load_home(){
         //load a calendar
         load_calendar(last_viewed); 
 
-
         //settin up sidebar- getting all user calendars and displaying them----------------------------------
         fetch("api/ScheduleCalendars/",{
             headers: {
@@ -57,23 +56,32 @@ function load_home(){
         })
         .then(res => res.json())
         .then(result => {
-            //console.log(result);
 
             let sidebar = document.querySelector("#sidebar");
+            let cal_title = document.createElement("div");
+            sidebar.append(cal_title)
+
+            cal_title.classList.add("title");
+            cal_title.innerHTML += "Calendars";
+            
+            let cal_container = document.createElement("div");
+            sidebar.append(cal_container);
+            cal_container.classList.add("cal-container")
 
             //putting calendars into sidebar ------------------------------------------
             result.forEach((calendar) =>{
-                let cal_container = document.createElement("div");
-                sidebar.append(cal_container);
-                cal_container.classList.add("sidebar-item");
-                cal_container.innerHTML += calendar.name;
+                let cal_item = document.createElement("div");
+                cal_container.append(cal_item);
+                
+                cal_item.classList.add("sidebar-item");
+                cal_item.innerHTML += calendar.name;
 
-                if (calendar.id == last_viewed){
-                    cal_container.style.backgroundColor = "grey";
+                if (calendar["id"] == last_viewed){
+                    cal_item.style.backgroundColor = "lightgrey";
                 }
                 
                 //adding event listener so when calendar is clicked it loads calendar --------------------------
-                cal_container.addEventListener("click", ()=>{
+                cal_item.addEventListener("click", ()=>{
                     //change last viewed calendar to clicked one then reload
                     fetch("api/LastViewedCalendar/", {
                         method :"PUT",
@@ -81,7 +89,7 @@ function load_home(){
                             Authorization: `Bearer ${localStorage.getItem("token")}`,
                             "Content-Type": "application/json"
                         },
-                        body:JSON.stringify({"id": calendar.id})
+                        body:JSON.stringify({"id": calendar["id"]})
                         
                     })
                     .then(res => res.json())
@@ -118,7 +126,7 @@ function load_calendar(cal_id){
         
     label.classList.add("schedule-name");
     label.innerHTML += "GMT +00";
-    
+    label.setAttribute("data-hour", 0)
 
     let label_col = document.createElement("div");
     first_column.append(label_col);
@@ -126,20 +134,32 @@ function load_calendar(cal_id){
 
     for(let i=1; i<25; i++){
         let label = document.createElement("div");
-    
+        label.setAttribute("data-hour", i)
+
         label.classList.add("label");
         if (i <= 11){
             label.innerHTML += `${i} AM`;
 
         }else{
-            label.innerHTML += `${i} PM`;
-
+            if(i== 24){
+                label.innerHTML = "";
+            }else{
+                label.innerHTML += `${i} PM`;
+            }
         }
+
         label_col.append(label)
         }
      //  end of label column -----------------------------------------------------------------
     
-
+    //scroll to current time
+    /* scroll to label whose hour is current hour */
+    let date = new Date()
+    let hour = date.getHours();
+    
+    let to_scroll_to = document.querySelector(`div[data-hour="${hour}"]`)
+    to_scroll_to.scrollIntoView();
+             
     //LOADING SCHEDULES --------------------------------------------------------------
     let name = ""; 
         let schedules = result["schedules"];
@@ -198,10 +218,8 @@ function load_schedule(schedule){
             // event listener---------------------------------------------------------
             // click on box triggers procedure to add an event
             event_box.addEventListener("click", (event) => clickbox(event, Number(name), i, "box"))
-     
         }
 
-        
         let events = schedule["events"];
 
         //placing events on grid ----------------------------------------------------------------------
@@ -224,15 +242,8 @@ function load_schedule(schedule){
             event_container.classList.add("event-container");
 
            
-            /* We want event boxes to line up nicely. however using absolute positioning everywhere brings out the inaccuracies using calculations
-            We then want to use position relative if event has a prior one so that it is placed immediately after prior event,
-            however events without prior events or those with prior events that are absolutely positioned will fall to the top, 
-            means we want to conditionally render  */
-
-            /* if event has immediate prior event that starts in the same box or start minute = 0 use position relative and no offset
-            else add an offset to top*/
-
-            let offset = (row_height_float * start_minute / 60);
+            /* Just absolutely position all events ha! */
+            let offset = (row_height_float * start_minute / 60); //offset to event
             event_container.style.top = `${offset}px` ;
 
             to_place.append(event_container);
@@ -285,7 +296,6 @@ function clickbox(event , schedule_number, box_number, box_or_event, offset, eve
     form.setAttribute("action", `/`)
     //form.setAttribute("method", "post");
 
-  
     // if x coordinate is more than half the screen width popup to left of box instead of to right of box 
     let x = event.clientX;
     let half_screen_size = window.innerWidth/2;
@@ -323,13 +333,11 @@ function clickbox(event , schedule_number, box_number, box_or_event, offset, eve
    
 }
 
-
-
 function clear_screen(){
     // clear screen mainly for calendar switching
 
     //clear sidebar
-    document.querySelector("#sidebar").innerHTML = "";
+    document.querySelector("#sidebar").innerHTML  = "";
     //clear grid
     document.querySelector(".label-col").innerHTML =  "";
 
@@ -360,14 +368,11 @@ function parse_time(event){
     let time_difference = (end_hour + end_minute/60 )- (start_hour +  start_minute/60);
     let hour_difference = end_hour - start_hour;
 
-    let crossover;
 
-    if (end_minute != 0){
-        crossover = 1;
-    }else{
-        crossover = 0;
-    }
+    // if the end minute of an event is not 0; it crosses over into the next hour
+    let crossover = (end_minute != 0) ? 1 : 0;
 
+    //hacky 
     let gap_number = hour_difference - 1 + crossover;
 
     return [start_hour, start_minute, time_difference, hour_difference, gap_number, end_hour, end_minute];
