@@ -219,7 +219,6 @@ function load_schedule(schedule){
             // height = row_height * time_difference + row_gap * gap_number;
             //rowheight * timedifference - makes sure height of event is proportional to time it take,
             //row_gap blah blah blah takes into account gaps in grid
-            console.log("Event", event_object, "time dif", time_difference , "hour_diff", hour_difference, "gap_number", gap_number);
             event_container.style.height= `${row_height_float* time_difference + row_gap_float* gap_number}px`;
         
             event_container.classList.add("event-container");
