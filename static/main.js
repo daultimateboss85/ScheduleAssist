@@ -179,6 +179,7 @@ function load_calendar(cal_id){
 }
 
 function load_schedule(schedule){
+    clear_popups();
     let name = schedule["name"];
     fetch(`api/Schedule/${schedule["id"]}`, {
         headers:{
@@ -217,7 +218,7 @@ function load_schedule(schedule){
 
             // event listener---------------------------------------------------------
             // click on box triggers procedure to add an event
-            event_box.addEventListener("click", (event) => clickbox(event, Number(name), i, "box"))
+            event_box.addEventListener("click", (event) => clickbox(event, schedule["id"], i, "box"))
         }
 
         let events = schedule["events"];
@@ -226,6 +227,7 @@ function load_schedule(schedule){
         events.forEach((event_object, index) =>{
             let [start_hour, start_minute, time_difference, hour_difference, gap_number,end_hour, end_minute ] = parse_time(event_object);
             
+            //where ill place event container
             let to_place = document.querySelector(`div[data-event="${start_hour}"][data-schedule="${schedule["id"]}"]`);
 
             // container of event
@@ -233,15 +235,12 @@ function load_schedule(schedule){
             event_container.setAttribute("data-eventid", event_object["id"]);
             
             // setting height of event container based on how long event is
-  
             // height = row_height * time_difference + row_gap * gap_number;
-            //rowheight * timedifference - makes sure height of event is proportional to time it take,
+            //rowheight * timedifference - makes sure height of event is proportional to time it takes,
             //row_gap blah blah blah takes into account gaps in grid
-            event_container.style.height= `${row_height_float* time_difference + row_gap_float* gap_number}px`;
-        
             event_container.classList.add("event-container");
+            event_container.style.height= `${row_height_float* time_difference + row_gap_float* gap_number}px`;
 
-           
             /* Just absolutely position all events ha! */
             let offset = (row_height_float * start_minute / 60); //offset to event
             event_container.style.top = `${offset}px` ;
@@ -250,8 +249,7 @@ function load_schedule(schedule){
             
             //adding eventlistener to events
             //such that when events are clicked form pops up immediately to their side and form is prepopulated
-            event_container.addEventListener("click", (event) => clickbox(event, Number(name), start_hour,  "event",offset,event_object["id"]))
-
+            event_container.addEventListener("click", (event) => clickbox(event, schedule["id"], start_hour,  "event",offset, event_object))
 
             // title of event
             let title_container = document.createElement("div");
@@ -260,8 +258,7 @@ function load_schedule(schedule){
             title_container.innerHTML += `${event_object["title"]}`;
 
             // time of event
-            //add if event length is 15 min or greatere
-
+            //add if event length is 15 min or greater
             if (time_difference >= 0.25){
             let time_container = document.createElement("div");
             event_container.append(time_container);
@@ -273,7 +270,7 @@ function load_schedule(schedule){
     })
 }
         
-function clickbox(event , schedule_number, box_number, box_or_event, offset, event_details ){
+function clickbox(event , schedule_id, box_number, box_or_event, offset, event_details ){
     /* caters to both clicking an empty box or clicking an event
     box_or_event - differentiates whether box or event */
     event.stopPropagation();
@@ -282,11 +279,12 @@ function clickbox(event , schedule_number, box_number, box_or_event, offset, eve
     clear_popups();
     
     // use schedule number and box number to locate box which was clicked  
-    let event_box = document.querySelector(`#schedule${schedule_number} div[data-event="${box_number}"]`);
+    let event_box = document.querySelector(`div[data-event="${box_number}"][data-schedule="${schedule_id}"]`);
 
     // popup form to submit ------------------------------------------------------
-    let form = create_Form();
+    let form = create_Form(schedule_id, event_details);
     event_box.append(form);
+    form.children[1].firstChild.focus();
     
     //if event was clicked then shift the form to meet the event
     if (box_or_event == "event"){
@@ -305,29 +303,10 @@ function clickbox(event , schedule_number, box_number, box_or_event, offset, eve
         form.classList.add("slideInLeft");
     }
 
-    // // form container -----------------------------------------------------
-    // let form_container = document.createElement("div");
-    
-    // form.append(form_container)
-    // form_container.classList.add("popup-form-container");
-
-    // let title_input = document.createElement("input");
-    // form_container.append(title_input);
-    // //add form to box
-    // title_input.focus();
-
-
-    form.addEventListener("click", (e)=>{
-        //stop other click events happening when workin on the form
-        e.stopPropagation();
-
-    })
-   
 }
 
-function create_Form(){
+function create_Form(schedule_id, event_details){
     //Creates forms different if event box or event
-
     let form = document.createElement("form");
 
     let top = document.createElement("div");
@@ -340,19 +319,68 @@ function create_Form(){
 
     let title_input = document.createElement("input");
     title_input.setAttribute("placeholder", "Add Title");
-    middle.append(title_input);
-    title_input.focus();
+    title_input.setAttribute("name", "title");
 
+    middle.append(title_input);
 
     let start_time = document.createElement("input");
+    start_time.setAttribute("name", "start_time");
+
     let end_time = document.createElement("input");
+    end_time.setAttribute("name", "end_time");
+    
     middle.append(start_time, end_time);
 
     let bottom = document.createElement("div");
     form.append(bottom);
 
     let description = document.createElement("textarea");
+    description.setAttribute("name", "description");
+    description.classList.add("description");
     bottom.append(description);
+
+    // populate if event box
+    if (event_details){
+        title_input.value = event_details["title"];
+        start_time.value = event_details["start_time"];
+        end_time.value = event_details["end_time"];
+        description.value = event_details["description"];
+    }
+    
+    let submit = document.createElement("button");
+    submit.innerHTML += "Submit";
+    bottom.append(submit)
+
+
+    form.addEventListener("click", (event)=>{
+        //stop other click events happening when workin on the form especially to not allow listener that clears forms
+        //receive event
+        event.stopPropagation();
+    })
+
+    form.addEventListener("submit", (event)=>{
+        event.preventDefault();
+        //if event details then post else put
+
+        if(event_details){
+        }
+
+        else{
+            fetch(`api/Schedule/${schedule_id}/events`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                },
+                body: new FormData(form)
+            })
+            .then(res => res.json())
+            .then(result => {
+                load_schedule(result["schedule"]);
+            })
+
+        }
+    })
+
 
     return form;
 }

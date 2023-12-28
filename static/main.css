@@ -125,7 +125,8 @@
 
 .popup-form{
     position: absolute;
-    width: 100%;
+    width: 25vw;
+    height: 30vh;
     top: 0;
     left: 105%;
     background-color: blanchedalmond;
@@ -140,6 +141,10 @@
     background-color: #D2D5DE;
 }
 
+textarea{
+    width: 100%;
+    resize: none;
+}
 
 .popup-form-container h2{
 
