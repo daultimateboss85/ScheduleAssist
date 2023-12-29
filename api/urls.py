@@ -30,7 +30,7 @@ urlpatterns = [
     path("Schedule/<str:sched_id>/events", views.DailyEventList.as_view(), name="event-list"),
 
     #get event, update, delete
-    path("event/<str:pk>", views.DailyEventItem.as_view(), name="event-item"),
+    path("Events/<str:pk>", views.DailyEventItem.as_view(), name="event-item"),
 
 
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

@@ -35,15 +35,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.instance:
-            try:
-                for object in self.instance:
-                    object.name = Schedule.NAME_CHOICES_VALUES[object.name]
-
-            except:
-                self.instance.name = Schedule.NAME_CHOICES_VALUES[self.instance.name]
-
     def get_events(self, obj):
+        #obj.refresh_from_db()
         return EventSerializer(obj.events_set, many=True).data
 
 

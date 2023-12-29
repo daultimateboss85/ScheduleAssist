@@ -31,10 +31,9 @@ const row_gap_float = Number(row_gap.slice(0,-3)) * 16;
 const row_height = window.getComputedStyle(document.documentElement).getPropertyValue("--row-height");
 const row_height_float = Number(row_height.slice(0,-3)) * 16; //convert to pixels by * 16
 
-const DAY_LIST = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+const DAY_LIST = [ "MASTER", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
 function load_home(){
-    console.log("loading home");
     //initial calendar load when user logs in
     //get last viewed calendar id, that is the calendar that will be loaded on browser load
     fetch("api/LastViewedCalendar/",{
@@ -56,7 +55,7 @@ function load_home(){
         })
         .then(res => res.json())
         .then(result => {
-
+         
             let sidebar = document.querySelector("#sidebar");
             let cal_title = document.createElement("div");
             sidebar.append(cal_title)
@@ -181,6 +180,7 @@ function load_calendar(cal_id){
 function load_schedule(schedule){
     clear_popups();
     let name = schedule["name"];
+
     fetch(`api/Schedule/${schedule["id"]}`, {
         headers:{
             Authorization:`Bearer ${localStorage.getItem("token")}`
@@ -188,9 +188,13 @@ function load_schedule(schedule){
         })
     .then( res => res.json())
     .then(schedule => {
-        //console.log(schedule);
+        
         //main part of calendar --------------------------------------------------------------
         let schedule_column = document.querySelector(`#schedule${Number(name)}`);
+        
+        //clear column
+        schedule_column.innerHTML = "";
+
         schedule_column.classList.add("schedule-col");
 
         //title's of columns----------------------------------------
@@ -198,7 +202,7 @@ function load_schedule(schedule){
         schedule_column.append(title_container);
         title_container.classList.add("schedule-name");
 
-        title_container.innerHTML += schedule["name"].substr(0, 3).toUpperCase();
+        title_container.innerHTML += DAY_LIST[Number(schedule["name"])];
         // end of title
 
         // event column
@@ -222,7 +226,7 @@ function load_schedule(schedule){
         }
 
         let events = schedule["events"];
-
+        
         //placing events on grid ----------------------------------------------------------------------
         events.forEach((event_object, index) =>{
             let [start_hour, start_minute, time_difference, hour_difference, gap_number,end_hour, end_minute ] = parse_time(event_object);
@@ -274,7 +278,7 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
     /* caters to both clicking an empty box or clicking an event
     box_or_event - differentiates whether box or event */
     event.stopPropagation();
-    
+ 
     //clear other popups on screen
     clear_popups();
     
@@ -312,7 +316,32 @@ function create_Form(schedule_id, event_details){
     let top = document.createElement("div");
     form.append(top);
 
-    top.innerHTML += "&#215;";
+    if(event_details){
+        //delete button
+        let delete_event = document.createElement("span");
+        delete_event.innerHTML += "delete";
+        delete_event.classList.add("material-symbols-outlined");
+        top.append(delete_event);
+
+        delete_event.addEventListener("click", (event)=>{
+            event.stopPropagation();
+
+            fetch(`api/Events/${event_details["id"]}`,{
+                method: "DELETE",
+                headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }})
+            .then(res => res.json())
+            .then(result => {
+                load_schedule(event_details["schedule"]);
+            })
+
+        })
+    }
+
+    let close = document.createElement("span");
+    close.innerHTML += "&#215;";
+    top.append(close);
 
     let middle = document.createElement("div");
     form.append(middle);
@@ -361,30 +390,25 @@ function create_Form(schedule_id, event_details){
     form.addEventListener("submit", (event)=>{
         event.preventDefault();
         //if event details then post else put
+        let endpoint = event_details ? `api/Events/${event_details["id"]}` : `api/Schedule/${schedule_id}/events`;
+        let method =  event_details ? "PUT" : "POST";
 
-        if(event_details){
-        }
-
-        else{
-            fetch(`api/Schedule/${schedule_id}/events`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                },
-                body: new FormData(form)
-            })
-            .then(res => res.json())
-            .then(result => {
-                load_schedule(result["schedule"]);
-            })
-
-        }
+        fetch(endpoint, {
+            method: method,
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            },
+            body: new FormData(form)
+        })
+        .then(res => res.json())
+        .then(result => {
+            
+            load_schedule(result["schedule"]);
+        }) 
     })
-
 
     return form;
 }
-
 
 function clear_screen(){
     // clear screen mainly for calendar switching

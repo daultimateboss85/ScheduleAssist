@@ -73,7 +73,6 @@ class ScheduleCalendarList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-# implement update and delete
 class ScheduleCalendarItem(APIView):
     """
     Retrieve, Update or Delete a ScheduleCalendar instance.
@@ -167,7 +166,6 @@ class ScheduleList(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class ScheduleItem(APIView):
@@ -303,3 +301,4 @@ class DailyEventItem(APIView):
             return Response({"deleted": "true"})
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+    
