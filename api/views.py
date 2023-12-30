@@ -18,20 +18,22 @@ def getRoutes(request):
 class LastViewedCalendar(APIView):
     """
     Set and get persons last viewed calendar
-    """ 
+    """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """Get user's last viewed calendar"""
 
-        last_viewed_calendar = request.user.last_viewed_cal #this should always return a calendar as calendars are created upon user creation
-        
+        last_viewed_calendar = (
+            request.user.last_viewed_cal
+        )  # this should always return a calendar as calendars are created upon user creation
+
         if last_viewed_calendar:
-            return Response({"id":last_viewed_calendar.id})
-        
-        return Response("No last viewed Calendar",status=status.HTTP_400_BAD_REQUEST)
-    
+            return Response({"id": last_viewed_calendar.id})
+
+        return Response("No last viewed Calendar", status=status.HTTP_400_BAD_REQUEST)
+
     def put(self, request):
         """Set last viewed calendar"""
         id = request.data.get("id", None)
@@ -44,7 +46,7 @@ class LastViewedCalendar(APIView):
                 request.user.save()
 
                 return Response("Last calendar set")
-    
+
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -71,7 +73,7 @@ class ScheduleCalendarList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class ScheduleCalendarItem(APIView):
     """
@@ -104,9 +106,8 @@ class ScheduleCalendarItem(APIView):
                 return Response(serializer.data)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response(status=status.HTTP_400_BAD_REQUEST)
 
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         calendar = self.get_object(request, pk)
@@ -164,7 +165,7 @@ class ScheduleList(APIView):
                 return Response(new_serializer.data)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -199,9 +200,8 @@ class ScheduleItem(APIView):
                 new_serializer = ScheduleSerializer(new_schedule)
 
                 return Response(new_serializer.data)
-            
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -246,13 +246,12 @@ class DailyEventList(APIView):
                 try:
                     newly_created = serializer.save(schedule=schedule)
                     new_serializer = EventSerializer(newly_created)
-                    return Response(new_serializer.data) 
+                    return Response(new_serializer.data)
 
                 except ValueError:
                     return Response("INvalid times", status=status.HTTP_400_BAD_REQUEST)
-    
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-            
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -283,13 +282,12 @@ class DailyEventItem(APIView):
                 try:
                     newly_created = serializer.save()
                     new_serializer = EventSerializer(newly_created)
-                    return Response(new_serializer.data) 
+                    return Response(new_serializer.data)
 
                 except ValueError:
                     return Response("INvalid times", status=status.HTTP_400_BAD_REQUEST)
-            
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-            
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -301,4 +299,32 @@ class DailyEventItem(APIView):
             return Response({"deleted": "true"})
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+class CopySchedule(APIView):
+    # copy from_id schedule into to_id schedule
+
+    def get_object(self, request, sched_id):
+        return get_schedule(request, sched_id)
+
+    def put(self, request, from_id, to_id):
+        # get the two schedules making sure both belong to user
+        to_schedule = self.get_object(request, to_id)
+        from_schedule = self.get_object(request, from_id)
+
+        if to_schedule and from_schedule:
+            for event in to_schedule.events_set:
+                event.delete()
+
+            for event in from_schedule.events_set:
+                DailyEvent.objects.create(
+                    title=event.title,
+                    start_time=event.start_time,
+                    end_time=event.end_time,
+                    description=event.description,
+                    schedule=to_schedule,
+                )
+
+            return Response({"copied"})
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)

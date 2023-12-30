@@ -94,6 +94,7 @@ class Schedule(models.Model):
 
     @property
     def events_set(self):
+        #just want this to be a property
         return self.events.all()
 
 

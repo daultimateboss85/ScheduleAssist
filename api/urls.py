@@ -5,9 +5,6 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-
-
-
 urlpatterns = [
     path("", views.getRoutes),
 
@@ -32,14 +29,11 @@ urlpatterns = [
     #get event, update, delete
     path("Events/<str:pk>", views.DailyEventItem.as_view(), name="event-item"),
 
+    #copy a schedule to another
+    path("Copy/Schedule/<str:from_id>/<str:to_id>",views.CopySchedule.as_view(),  name="copy-schedule"),
 
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-
- 
 ]
    
-"""     
-
-     """

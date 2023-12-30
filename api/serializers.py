@@ -36,7 +36,6 @@ class ScheduleSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
     def get_events(self, obj):
-        #obj.refresh_from_db()
         return EventSerializer(obj.events_set, many=True).data
 
 

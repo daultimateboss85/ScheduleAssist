@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener("DOMContentLoaded", async ()=>{
     //going to make this such that on login get user token
     fetch("api/token/", {
         method: "POST",
@@ -21,8 +21,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
         clear_popups();
     })
     
-    let divs = document.querySelectorAll(`div`);
-    console.log("divs", divs.length);
+    let fun = await myFetch("api/ScheduleCalendars/", "GET");
+    console.log(fun);
+    let value = await fun.json();
+    console.log(value);
 })
 const row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
 const row_gap_float = Number(row_gap.slice(0,-3)) * 16;
@@ -340,7 +342,11 @@ function create_Form(schedule_id, event_details){
     }
 
     let close = document.createElement("span");
+    close.classList.add("pointer");
     close.innerHTML += "&#215;";
+    close.addEventListener("click", ()=>{
+        clear_popups();
+    })
     top.append(close);
 
     let middle = document.createElement("div");
@@ -409,6 +415,19 @@ function create_Form(schedule_id, event_details){
 
     return form;
 }
+
+async function myFetch(endpoint, method="GET"){
+
+    let result = await fetch(endpoint, {
+        method: method,
+        headers:{
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        }})
+        //.then(res => res.json())
+        
+    return result;
+}
+
 
 function clear_screen(){
     // clear screen mainly for calendar switching

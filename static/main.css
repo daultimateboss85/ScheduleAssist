@@ -37,6 +37,7 @@
 #sidebar{
     background-color: var(--event-boxcolor);
     padding: 0.5rem;
+    
 }
 
 /* contains calendar grid */
@@ -106,7 +107,7 @@
 .event-container{
     position: absolute;
     border : solid 1px black;
-    font-size: 0.75rem;
+    font-size: 1rem;
     width: 100%;
     background-color: lightblue; 
     z-index: 3;
@@ -176,6 +177,11 @@ textarea{
 
 
 /* utility classes */
+
+.pointer{
+    cursor: pointer;
+}
+
 .title{
     font-weight: 700;
     font-size: 2rem;
