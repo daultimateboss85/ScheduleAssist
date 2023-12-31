@@ -8,6 +8,7 @@
 
 *{
     box-sizing: border-box;
+    font: inherit;
 }
 
 
@@ -92,7 +93,6 @@
     justify-items: center;
     align-items: center;
     position: sticky;
-    top: 0;
     border-bottom: solid var(--row-gap) var(--gap-color);
     z-index: 30;
 }
@@ -107,7 +107,7 @@
 .event-container{
     position: absolute;
     border : solid 1px black;
-    font-size: 1rem;
+    font-size: 0.85rem;
     width: 100%;
     background-color: lightblue; 
     z-index: 3;
@@ -127,8 +127,8 @@
 .popup-form{
     position: absolute;
     width: 25vw;
-    height: 30vh;
-    top: 0;
+    height: 20vh; 
+    top: 0px;
     left: 105%;
     background-color: blanchedalmond;
     cursor: default;
@@ -147,11 +147,9 @@ textarea{
     resize: none;
 }
 
-.popup-form-container h2{
 
-}
-.popup-form-container input{
-    position: relative;
+.popup-form div{
+    
     
 }   
 

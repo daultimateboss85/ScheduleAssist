@@ -23,8 +23,8 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     
     let fun = await myFetch("api/ScheduleCalendars/", "GET");
     console.log(fun);
-    let value = await fun.json();
-    console.log(value);
+    // let value = await fun.json();
+    // console.log(value);
 })
 const row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
 const row_gap_float = Number(row_gap.slice(0,-3)) * 16;
@@ -270,7 +270,8 @@ function load_schedule(schedule){
             event_container.append(time_container);
             time_container.classList.add("event-time");
             time_container.innerHTML += `${event_object["start_time"]}-${event_object["end_time"]}`;
-            }
+            }else{
+                if(time_difference <= 5/60 ){event_container.style.fontSize = "0.6rem"; }}
         }) 
         
     })
@@ -290,16 +291,26 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
     // popup form to submit ------------------------------------------------------
     let form = create_Form(schedule_id, event_details);
     event_box.append(form);
-    form.children[1].firstChild.focus();
+
+    let height =  form.offsetHeight;
+    form.children[1].firstChild.focus(); //let title input receive focus
     
     //if event was clicked then shift the form to meet the event
     if (box_or_event == "event"){
         form.style.top = `${offset}px`;
-    }
+    }else{form.style.top = "0px"};
 
+    //if box will go out of page shift form upwards
+    console.log("height of form", height, "eventy",event.y, "winheight", window.innerHeight )
+    console.log(form.style.top);
+    let shift_needed = event.y + height;
+    if (shift_needed > window.innerHeight){
+        shift_needed -= window.innerHeight
+       
+    }
     form.classList.add("popup-form","animate");
     // if x coordinate is more than half the screen width popup to left of box instead of to right of box 
-    let x = event.clientX;
+    let x = event.x;
     let half_screen_size = window.innerWidth/2;
 
     if (x > half_screen_size){
@@ -360,17 +371,23 @@ function create_Form(schedule_id, event_details){
 
     let start_time = document.createElement("input");
     start_time.setAttribute("name", "start_time");
+    start_time.setAttribute("placeholder", "Start:");
 
     let end_time = document.createElement("input");
     end_time.setAttribute("name", "end_time");
+    end_time.setAttribute("placeholder", "End:");
     
-    middle.append(start_time, end_time);
+    let time_div = document.createElement("div");
+    form.append(time_div);
+    time_div.append(start_time, end_time);
+
 
     let bottom = document.createElement("div");
     form.append(bottom);
 
     let description = document.createElement("textarea");
     description.setAttribute("name", "description");
+    description.setAttribute("placeholder", "Description");
     description.classList.add("description");
     bottom.append(description);
 
@@ -423,11 +440,10 @@ async function myFetch(endpoint, method="GET"){
         headers:{
             Authorization: `Bearer ${localStorage.getItem("token")}`
         }})
-        //.then(res => res.json())
+        .then(res => res.json())
         
     return result;
 }
-
 
 function clear_screen(){
     // clear screen mainly for calendar switching
