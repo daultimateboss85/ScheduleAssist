@@ -292,23 +292,29 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
     let form = create_Form(schedule_id, event_details);
     event_box.append(form);
 
-    let height =  form.offsetHeight;
+
     form.children[1].firstChild.focus(); //let title input receive focus
     
-    //if event was clicked then shift the form to meet the event
-    if (box_or_event == "event"){
-        form.style.top = `${offset}px`;
-    }else{form.style.top = "0px"};
+    let top = 0; // initial offset of form
 
-    //if box will go out of page shift form upwards
-    console.log("height of form", height, "eventy",event.y, "winheight", window.innerHeight )
-    console.log(form.style.top);
-    let shift_needed = event.y + height;
+    if (box_or_event == "event"){
+        top = offset; //if for event shift to meet event
+    }
+    //if box will go out of page shift form upwards 
+    let height = form.offsetHeight; //height of form
+    let shift_needed = event.y + height; //indicate we might need shifting
+    
     if (shift_needed > window.innerHeight){
-        shift_needed -= window.innerHeight
-       
+        shift_needed = form.getBoundingClientRect().top + top + height - window.innerHeight;
+
+        if (shift_needed > 0 ){//if shift actually needed
+            form.style.top = `${ - shift_needed + top}px`;
+
+        }else{form.style.top = `${top}px`; }
+        
     }
     form.classList.add("popup-form","animate");
+    
     // if x coordinate is more than half the screen width popup to left of box instead of to right of box 
     let x = event.x;
     let half_screen_size = window.innerWidth/2;
