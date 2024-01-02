@@ -70,6 +70,8 @@
 .label, .schedule-name{
     display: grid;
     background-color: #f3f6f9;
+    position: sticky;
+    top: 0px;
 }
 
 .label-items, .event-col{
@@ -132,7 +134,7 @@
     left: 105%;
     background-color: blanchedalmond;
     cursor: default;
-    z-index: 20;
+    z-index: 35;
 }
 
 .popup-form-container{

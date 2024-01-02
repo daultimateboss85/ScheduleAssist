@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from .utils import is_good_event
 
 # Create your models here.
 class User(AbstractUser):
@@ -147,21 +147,13 @@ class DailyEvent(models.Model):
         else:
             other_events = self.schedule.events_set.exclude(id=self.id)
 
-        for other_event in other_events:
-            if (
-                self.start_time == other_event.start_time
-                or self.end_time == other_event.end_time
-                or other_event.start_time < self.start_time < other_event.end_time
-                or other_event.start_time < self.end_time < other_event.end_time
-            ):
-                raise ValueError("Bad times")  # describe this
+        try:
+            allowed = is_good_event(self, other_events)
+        except ValueError:
+            raise ValueError("Bad times")
+        
+        super().save(*args, **kwargs)
 
-        # if the end_time is less than the start_time ie start something today and end tomorrow return false
-        if self.start_time >= self.end_time:
-            raise ValueError("Bad times")  # describe this
-
-        else:
-            super().save(*args, **kwargs)
 
 
 class MiscEvent(models.Model):
