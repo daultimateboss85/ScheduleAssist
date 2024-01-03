@@ -292,7 +292,6 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
     let form = create_Form(schedule_id, event_details);
     event_box.append(form);
 
-
     form.children[1].firstChild.focus(); //let title input receive focus
     
     let top = 0; // initial offset of form
@@ -303,7 +302,7 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
     //if box will go out of page shift form upwards 
     let height = form.offsetHeight; //height of form
     let shift_needed = event.y + height; //indicate we might need shifting
-    
+
     if (shift_needed > window.innerHeight){
         shift_needed = form.getBoundingClientRect().top + top + height - window.innerHeight;
 

@@ -147,12 +147,20 @@ class DailyEvent(models.Model):
         else:
             other_events = self.schedule.events_set.exclude(id=self.id)
 
-        try:
-            allowed = is_good_event(self, other_events)
-        except ValueError:
-            raise ValueError("Bad times")
-        
-        super().save(*args, **kwargs)
+        overlap = kwargs.pop("overlap", None)
+
+        if not overlap:
+            try:
+                allowed = is_good_event(self, other_events)
+            except ValueError:
+                raise ValueError("Bad times")
+            
+            if allowed:
+                super().save(*args, **kwargs)
+                
+     
+
+
 
 
 

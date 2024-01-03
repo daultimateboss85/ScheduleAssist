@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CalendarSerializer(serializers.ModelSerializer):
-    #adding schedules so i can get all schedules that belong to a calendar without making multiple calls
+    # adding schedules so i can get all schedules that belong to a calendar without making multiple calls
     schedules = serializers.SerializerMethodField()
 
     class Meta:
@@ -24,7 +24,7 @@ class CalendarSerializer(serializers.ModelSerializer):
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
-    #adding events so i can get all events that belong to a schedule without doing multiple calls
+    # adding events so i can get all events that belong to a schedule without doing multiple calls
     events = serializers.SerializerMethodField()
 
     class Meta:
@@ -40,6 +40,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    # this is cue to allow created events to overlap with others
+    overlap = serializers.BooleanField(default=False, required=False)
+
     class Meta:
         model = DailyEvent
         fields = "__all__"
@@ -49,7 +52,7 @@ class EventSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
         if self.instance:
-            #changing the representation of start and end times here for easy displaying on front end
+            # changing the representation of start and end times here for easy displaying on front end
             try:
                 for object in self.instance:
                     object.start_time = object.start_time.strftime("%H:%M")
@@ -58,3 +61,18 @@ class EventSerializer(serializers.ModelSerializer):
             except:
                 self.instance.start_time = self.instance.start_time.strftime("%H:%M")
                 self.instance.end_time = self.instance.end_time.strftime("%H:%M")
+
+    def create(self, validated_data):
+        # differentiating between events that will overlap or not
+        overlap = validated_data.pop("overlap", None)
+        to_create = DailyEvent(**validated_data)
+
+        if not overlap:
+            print("here")
+            to_create.save()
+            
+        else:
+            print("hello its me")
+            to_create.save(overlap=True)
+
+        return to_create

@@ -70,7 +70,6 @@
 .label, .schedule-name{
     display: grid;
     background-color: #f3f6f9;
-    position: sticky;
     top: 0px;
 }
 
