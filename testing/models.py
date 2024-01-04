@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from .utils import is_good_event
+from .utils import is_good_event, save_with_overlap
 
 # Create your models here.
 class User(AbstractUser):
@@ -147,18 +147,26 @@ class DailyEvent(models.Model):
         else:
             other_events = self.schedule.events_set.exclude(id=self.id)
 
-        overlap = kwargs.pop("overlap", None)
+        #kwarg indicating if object should be saved without checking if its time conflicts with others 
+        bypass: bool = kwargs.pop("bypass", None) 
 
-        if not overlap:
-            try:
-                allowed = is_good_event(self, other_events)
-            except ValueError:
-                raise ValueError("Bad times")
-            
-            if allowed:
-                super().save(*args, **kwargs)
+        if not bypass:
+            overlap = kwargs.pop("overlap", None)
+  
+            if not overlap:
+                try:
+                    allowed = is_good_event(self, other_events)
+                except ValueError:
+                    raise ValueError("Bad times")
                 
-     
+                if allowed:
+                    super().save(*args, **kwargs)
+            
+            else:
+                save_with_overlap(self, other_events)
+                    
+        else:
+            super.save(*args, **kwargs)
 
 
 

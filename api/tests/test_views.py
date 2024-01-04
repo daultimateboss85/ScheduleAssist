@@ -3,10 +3,13 @@ from django.urls import reverse
 from django.db.models import Max
 
 from rest_framework import status
-from rest_framework.test import APITestCase, APIRequestFactory, force_authenticate
+from rest_framework.test import APITestCase, APIRequestFactory, force_authenticate, APIClient
 
 from testing.models import User, ScheduleCalendar, Schedule, DailyEvent
 
+"""
+NB: Note that 8 Schedules are automatically created in a ScheduleCalendar
+"""
 
 class AuthenticationViewTestCase(APITestCase):
     """Testing authentication works"""
@@ -112,8 +115,7 @@ class ScheduleCalendarListViewTestCase(APITestCase):
 
 class GenTest(APITestCase):
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
         # creating users
         dault = User.objects.create_user(
             username="daultimateboss", password="thechosenone"
@@ -132,12 +134,15 @@ class GenTest(APITestCase):
             name="Gotham", owner=batman
         )
 
+        cls.owner = dault
+        cls.other_owner = batman
+        cls.main_calendar = daults_daily_calendar
+        cls.main_id = daults_daily_calendar.id
+        #anonymous user
+        cls.other_client = APIClient()
+
     def setUp(self):
-        batman = User.objects.get(username="batman")
-        dault = User.objects.get(username="daultimateboss")
-        self.client.force_authenticate(user=dault)
-        self.owner = dault
-        self.other_owner = batman
+        self.client.force_authenticate(user=self.owner)
 
 
 class ScheduleCalendarItemViewTestCase(GenTest):
@@ -158,37 +163,91 @@ class ScheduleCalendarItemViewTestCase(GenTest):
 
     def test_get_rightowner_calendarnotexists(self):
         """Test appropriate response is returned when calendar doenst exist"""
-        bad_calendar_id = ScheduleCalendar.objects.all().aggregate(Max("id"))["id__max"] + 1
-        
-        response = self.client.get(reverse("schedulecalendar-item", args=[bad_calendar_id]))
-       
+        bad_calendar_id = (
+            ScheduleCalendar.objects.all().aggregate(Max("id"))["id__max"] + 1
+        )
+
+        response = self.client.get(
+            reverse("schedulecalendar-item", args=[bad_calendar_id])
+        )
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_changing_name_validdata(self):
         """Test put endpoint"""
-        cal_id = ScheduleCalendar.objects.get(owner=self.owner, name="School Calendar").id
+        cal_id = ScheduleCalendar.objects.get(
+            owner=self.owner, name="School Calendar"
+        ).id
 
-        response = self.client.put(reverse("schedulecalendar-item", args=[cal_id]),
-                                   data={"name": "Gym Calendar"})
-        
+        response = self.client.put(
+            reverse("schedulecalendar-item", args=[cal_id]),
+            data={"name": "Gym Calendar"},
+        )
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["name"], "Gym Calendar")
 
     def test_put_changing_name_invalid_data(self):
         """Ensure appropriate response is returned"""
 
-        cal_id = ScheduleCalendar.objects.get(owner=self.owner, name="School Calendar").id
+        cal_id = ScheduleCalendar.objects.get(
+            owner=self.owner, name="School Calendar"
+        ).id
 
-        response = self.client.put(reverse("schedulecalendar-item", args=[cal_id]),
-                                   data={"nam": "Gym Calendar"})
-        
+        response = self.client.put(
+            reverse("schedulecalendar-item", args=[cal_id]),
+            data={"nam": "Gym Calendar"},
+        )
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    
+
     def test_delete_valid_id(self):
         """Ensure ability to delete calendars"""
 
-        cal_id = ScheduleCalendar.objects.get(owner=self.owner, name="School Calendar").id 
+        cal_id = ScheduleCalendar.objects.get(
+            owner=self.owner, name="School Calendar"
+        ).id
 
+        response = self.client.delete(reverse("schedulecalendar-item", args=[cal_id]))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), {"Deleted":"true"})
+
+
+class ScheduleListView(GenTest):
+
+    def test_get_schedules_of_calendar_of_anonymous_user(self):
+        """Test appropriate reponse is returned"""
+
+        
+        response = self.other_client.get(reverse("schedule-list", args=[self.main_id]))
+
+        self.assertEqual(response.status_code, status
+                         .HTTP_401_UNAUTHORIZED)
+
+
+    def test_get_schedules_of_calendar_of_logged_in_user(self):
+        """Test all schedules in a calendar are returned"""
+        
+        response = self.client.get(reverse("schedule-list", args=[self.main_id]))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        #8 calendars are created by default
+        self.assertEqual(len(response.json()), 8)
+
+    def test_post_create_schedule_appropriate_data(self):
+
+        response = self.client.post(reverse("schedule-list", args=[self.main_id]), data={
+            "name": "0", 
+            "value" : "2"
+        })
+        res = response.json()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res["name"], "0")
+        self.assertEqual(res["value"], 2)
+        self.assertEqual(res["calendar"]["name"] , "Daily Calendar")
+        self.assertEqual(self.main_calendar.schedules_set.count(), 9)
 
 """
 T#o test

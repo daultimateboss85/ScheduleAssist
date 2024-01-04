@@ -162,7 +162,7 @@ class ScheduleList(APIView):
                 # so that newly created object can be returned, might refactor
                 new_serializer = ScheduleSerializer(newly_created)
 
-                return Response(new_serializer.data)
+                return Response(new_serializer.data, status=status.HTTP_201_CREATED)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -246,7 +246,7 @@ class DailyEventList(APIView):
                 try:
                     newly_created = serializer.save(schedule=schedule)
                     new_serializer = EventSerializer(newly_created)
-                    return Response(new_serializer.data)
+                    return Response(new_serializer.data, status=status.HTTP_200_OK)
 
                 except ValueError:
                     return Response("INvalid times", status=status.HTTP_400_BAD_REQUEST)

@@ -68,11 +68,9 @@ class EventSerializer(serializers.ModelSerializer):
         to_create = DailyEvent(**validated_data)
 
         if not overlap:
-            print("here")
             to_create.save()
             
         else:
-            print("hello its me")
             to_create.save(overlap=True)
 
         return to_create
