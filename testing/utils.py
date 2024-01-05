@@ -18,54 +18,155 @@ def is_good_event(event, other_events):
 
     return True
 
-#work on trying to shift event one by one
+def subtract_times(first_time, second_time, delta_or_time):
+    """return subtraction of two times
+    - if delta_or_time="delta" return type is timedelta
+    - else type time"""
+    difference = datetime.combine(date.min, first_time) - datetime.combine(date.min, second_time)
+    if delta_or_time == "delta":
+        return difference
 
-"""
-want ordered other_events 
+    else:
+        return time(difference.hour, difference.minute, difference.second)
 
-iterate through other_events looking for an event where new event's start time is between its start and end time- preevent
-    previous_queue = other_events[:preevent+1][::-1]
+def add_times(first_time, second_time, delta_or_time):
+    """return addition of two times
+    - if delta_or_time="delta" return type is timedelta
+    - else type time"""
+    sum = datetime.combine(date.min, first_time) + datetime.combine(date.min, second_time)
+    if delta_or_time == "delta":
+        return sum
 
+    else:
+        return time(sum.hour, sum.minute, sum.second)
 
-also looking for an event where new event's end time is between another's start and end time -endevent
-    after_queue = other_events[postevent:]
+#what if no event after preevent
+#what if first event is postevent
+def new_save_with_overlap(event, other_events):
+    #straight up copying events so can reset state if things go wrong
+    new_copy = copy.deepcopy(other_events)
+    #other_events should be ordered 
+    print(other_events) 
 
-if only one found continue with algorithm
-if none found save with bypass = true
-if two found
-    if not same event 
-        continue with algorithm
-    else
-        return false - means event is contained in another and we aint doin all at
+    #some constants needed 
+    zero_time = time(0)
+    one_day = timedelta(days=1)
+    
+    preevent = None
+    postevent = None
+    preshift = None
+    postshift = None    
 
-copyset = copy other_events
+    previous_queue = [] 
+    post_queue = [] 
 
-if preevent:
-    pre_shift_needed = preevent.end_time - new_event.start_time
+    #logic here is bcuz times are ordered, when difference switches from positive to negative we have found event before and after
+    for i, other_event in enumerate(other_events):
+        difference = subtract_times(event.start_time, other_event.start_time)
 
-    done = False
-    while not done:
+        if difference > zero_time:
+            preevent = other_event
+            previous_queue.append(preevent)
+
+        elif difference < zero_time:
+            postevent = other_event
+            post_queue.append(postevent)
+            break       
         
-        preevent.start_time -= pre_shift_ needed
-        preevent.end_time -= pre_shift_needed
-
-        if preevent.start_time > time(0):
-            preevent.save(bypass = True)
-
-        
-            next_in_line = prev_queue.dequeue
-            if preevent.start_time between next_in_line start and end time:
-                preevent = next_in_line
-            else:
-                done = True
         else:
+            #means start of event is same as start of another event
+            #its ambiguous the way to shift such an event
             return False
-            iterate through copy and restore db
 
-if postevent:
-    post_shift_needed = newevent.end_time - postevent.start_time
+    #now check if new event overlaps preevent or postevent
+    #we already know their start time's relation to new event
+    if event.start_time < preevent.end_time:
+        preshift = subtract_times(preevent.end_time, event.start_time)
 
-"""
+    if event.end_time > postevent.start_time:
+        postshift = subtract_times(event.end_time, postevent.start_time)
+
+    if preshift:
+        #shifting events prior to new event to make space for it
+        done = False
+        previous_queue.pop() #removing preevent from previous queue
+
+        while not done:
+            #shift preevent backwards
+            preevent.start_time =  subtract_times(preevent.start_time, preshift)  
+            preevent.end_time = subtract_times(preevent.end_time, preshift)
+
+            #if it goes out of range raise value error
+            if preevent.start_time <  zero_time:
+                raise ValueError
+            
+            #else save
+            else:
+                preevent.save(bypass=True)
+                new_prev = previous_queue.pop() #event prior to preevent
+                if preevent.start_time < new_prev.end_time: #if it doesnt need to be shifted we are done else repeat
+                    preevent = new_prev
+                
+                else:
+                    done = True
+
+    if postshift:
+        pass 
+
+
+    event.save(bypass=True)
+   
+    
+    ######################################################
+    
+    for (i, other_event) in enumerate(other_events):
+        if  other_event.start_time < event.start_time < other_event.end_time:
+            preevent = other_event
+            previous_queue = other_events[:i+1][::-1] #reverse list up to preevent
+
+
+        if  other_event.start_time < event.end_time < other_event.end_time:
+            postevent = other_event
+            post_queue = other_events[i:] #all events after new event
+
+
+    
+# if only one found continue with algorithm
+# if none found save with bypass = true
+# if two found
+#     if not same event 
+#         continue with algorithm
+#     else
+#         return false - means event is contained in another and we aint doin all at
+
+# copyset = copy other_events
+
+# if preevent:
+#     pre_shift_needed = preevent.end_time - new_event.start_time
+
+#     done = False
+#     while not done:
+        
+#         preevent.start_time -= pre_shift_ needed
+#         preevent.end_time -= pre_shift_needed
+
+#         if preevent.start_time > time(0):
+#             preevent.save(bypass = True)
+
+        
+#             next_in_line = prev_queue.dequeue
+#             if preevent.start_time between next_in_line start and end time:
+#                 preevent = next_in_line
+#             else:
+#                 done = True
+#         else:
+#             return False
+#             iterate through copy and restore db
+
+# if postevent:
+#     post_shift_needed = newevent.end_time - postevent.start_time
+
+
 
 
 def save_with_overlap(event, other_events):
