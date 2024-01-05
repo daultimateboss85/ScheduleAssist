@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     .then(res => res.json())
     .then(result => {
         localStorage.setItem("token", result["access"])
-        //console.log(result);
+        console.log(result);
     })
 
     //load home page immediately upon visit
@@ -279,17 +279,20 @@ function load_schedule(schedule){
         
 function clickbox(event , schedule_id, box_number, box_or_event, offset, event_details ){
     /* caters to both clicking an empty box or clicking an event
-    box_or_event - differentiates whether box or event */
+    box_or_event - differentiates whether box or event
+    nb - event popups are not inherently appended to event container but to event boxes and then 
+    shifted down with offset - in order to be able to have a higher global z-index than other event 
+    containers */
     event.stopPropagation();
  
     //clear other popups on screen
     clear_popups();
     
-    // use schedule number and box number to locate box which was clicked  
+    // use schedule id and box number to locate box which was clicked  
     let event_box = document.querySelector(`div[data-event="${box_number}"][data-schedule="${schedule_id}"]`);
 
     // popup form to submit ------------------------------------------------------
-    let form = create_Form(schedule_id, event_details);
+    let form = create_Form(schedule_id, event_details, box_number);
     event_box.append(form);
 
     form.children[1].firstChild.focus(); //let title input receive focus
@@ -307,7 +310,7 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
         shift_needed = form.getBoundingClientRect().top + top + height - window.innerHeight;
 
         if (shift_needed > 0 ){//if shift actually needed
-            form.style.top = `${ - shift_needed + top}px`;
+            form.style.top = `${top - shift_needed}px`;
 
         }else{form.style.top = `${top}px`; }
         
@@ -327,7 +330,7 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
 
 }
 
-function create_Form(schedule_id, event_details){
+function create_Form(schedule_id, event_details, box_number){
     //Creates forms different if event box or event
     let form = document.createElement("form");
 
@@ -402,6 +405,8 @@ function create_Form(schedule_id, event_details){
         start_time.value = event_details["start_time"];
         end_time.value = event_details["end_time"];
         description.value = event_details["description"];
+    }else{
+        start_time.value = `${box_number}:00`;
     }
     
     let submit = document.createElement("button");

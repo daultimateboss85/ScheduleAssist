@@ -6,6 +6,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import JSONParser
+
+
+import json
 
 from .utils import get_calendar, get_schedule, get_event
 
@@ -302,29 +306,39 @@ class DailyEventItem(APIView):
 
 
 class CopySchedule(APIView):
+    parser_classes = [JSONParser]
     # copy from_id schedule into to_id schedule
 
     def get_object(self, request, sched_id):
         return get_schedule(request, sched_id)
 
-    def put(self, request, from_id, to_id):
-        # get the two schedules making sure both belong to user
-        to_schedule = self.get_object(request, to_id)
+    def put(self, request, from_id):
         from_schedule = self.get_object(request, from_id)
 
-        if to_schedule and from_schedule:
-            for event in to_schedule.events_set:
-                event.delete()
+        if from_schedule:
+            #get list of schedules to copy to from body of request
+            #for each in list, copy from_schedule into each
 
-            for event in from_schedule.events_set:
-                DailyEvent.objects.create(
-                    title=event.title,
-                    start_time=event.start_time,
-                    end_time=event.end_time,
-                    description=event.description,
-                    schedule=to_schedule,
-                )
+            for to_id in request.data["schedules"]:
+            
+                to_schedule = self.get_object(request, to_id)
+                if to_schedule:
 
+                    for event in to_schedule.events_set:
+                        event.delete()
+
+                    for event in from_schedule.events_set:
+                        DailyEvent.objects.create(
+                            title=event.title,
+                            start_time=event.start_time,
+                            end_time=event.end_time,
+                            description=event.description,
+                            schedule=to_schedule,
+                        )
+                else:
+                    return Response({"message":"Couldnt copy some schedules"}, status=status.HTTP_400_BAD_REQUEST)
+                    
             return Response({"copied"})
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+ 

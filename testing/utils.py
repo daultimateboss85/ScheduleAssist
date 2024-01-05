@@ -18,6 +18,55 @@ def is_good_event(event, other_events):
 
     return True
 
+#work on trying to shift event one by one
+
+"""
+want ordered other_events 
+
+iterate through other_events looking for an event where new event's start time is between its start and end time- preevent
+    previous_queue = other_events[:preevent+1][::-1]
+
+
+also looking for an event where new event's end time is between another's start and end time -endevent
+    after_queue = other_events[postevent:]
+
+if only one found continue with algorithm
+if none found save with bypass = true
+if two found
+    if not same event 
+        continue with algorithm
+    else
+        return false - means event is contained in another and we aint doin all at
+
+copyset = copy other_events
+
+if preevent:
+    pre_shift_needed = preevent.end_time - new_event.start_time
+
+    done = False
+    while not done:
+        
+        preevent.start_time -= pre_shift_ needed
+        preevent.end_time -= pre_shift_needed
+
+        if preevent.start_time > time(0):
+            preevent.save(bypass = True)
+
+        
+            next_in_line = prev_queue.dequeue
+            if preevent.start_time between next_in_line start and end time:
+                preevent = next_in_line
+            else:
+                done = True
+        else:
+            return False
+            iterate through copy and restore db
+
+if postevent:
+    post_shift_needed = newevent.end_time - postevent.start_time
+
+"""
+
 
 def save_with_overlap(event, other_events):
     # just a bad event
