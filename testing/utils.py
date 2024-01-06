@@ -18,21 +18,24 @@ def is_good_event(event, other_events):
 
     return True
 
-def subtract_times(first_time, second_time, delta_or_time):
-    """return subtraction of two times
-    - if delta_or_time="delta" return type is timedelta
-    - else type time"""
+def subtract_times(first_time, second_time, delta_or_time=None):
+    """return subtraction of two times"""
     difference = datetime.combine(date.min, first_time) - datetime.combine(date.min, second_time)
-    
-    if difference < timedelta(0):
-        raise ValueError
-    
-    if delta_or_time == "delta":
-        return difference
+    if not delta_or_time:
+        if difference < timedelta(0) or difference.days:
+            raise ValueError("less than zero time")
+        
+        seconds = difference.seconds 
+        hour = seconds // 3600
+        minute = (seconds % 3600) // 60
+        second = (seconds % 3600) % 60
 
+        return time(hour, minute, second)
+    
     else:
-        return time(difference.hour, difference.minute, difference.second)
-
+        #there are times i want a delta object so i can represent negative time
+        return difference
+    
 def add_times(first_time, second_time):
     """return addition of two times"""
     #no intrinsic solution for this
@@ -42,13 +45,16 @@ def add_times(first_time, second_time):
     seconds = addition.seconds
 
     if addition.days:
-        raise ValueError
+        raise ValueError("more than 1 day sum")
     
     hour = seconds // 3600
     minute = (seconds % 3600) // 60
     seconds = (seconds % 3600) % 60
 
-    return time(hour, minute, seconds)
+    try:
+        return time(hour, minute, seconds)
+    except:
+        print("This was the porbl")
 
 #what if no event after preevent
 #what if first event is postevent
@@ -56,12 +62,12 @@ def new_save_with_overlap(event, other_events):
     #straight up copying events so can reset state if things go wrong
     other_events = list(other_events)
     new_copy = copy.deepcopy(other_events)
-    #other_events should be ordered 
-    print(other_events) 
 
+    #other_events should be ordered  
     try:
         #some constants needed 
         zero_time = time(0)
+        zero_time_delta = timedelta(0)
         
         preevent = None
         postevent = None
@@ -73,14 +79,15 @@ def new_save_with_overlap(event, other_events):
 
         #logic here is bcuz times are ordered, when difference switches from positive to negative we have found event before and after
         for i, other_event in enumerate(other_events):
-            difference = subtract_times(event.start_time, other_event.start_time)
+            difference = subtract_times(event.start_time, other_event.start_time, "delta")
 
-            if difference > zero_time:
+            if difference > zero_time_delta:
                 preevent = other_event
                 previous_queue.append(preevent)
 
-            elif difference < zero_time:
+            elif difference < zero_time_delta:
                 postevent = other_event
+                print("Checked post", postevent)
                 post_queue = other_events[i+1:]
                 break       
             
@@ -90,15 +97,20 @@ def new_save_with_overlap(event, other_events):
                 #no event has been touched yet so just return false
                 return False
 
+        print("prevent",preevent)
+        print("postevent",postevent)
         #now check if new event overlaps preevent or postevent
         #we already know their start time's relation to new event
-        if event.start_time < preevent.end_time:
-            preshift = subtract_times(preevent.end_time, event.start_time)
+        if preevent:
+            if event.start_time < preevent.end_time:
+                preshift = subtract_times(preevent.end_time, event.start_time)
 
-        if event.end_time > postevent.start_time:
-            postshift = subtract_times(event.end_time, postevent.start_time)
+        if postevent:
+            if event.end_time > postevent.start_time:
+                postshift = subtract_times(event.end_time, postevent.start_time)
 
         if preshift:
+            print("Preshift", preshift)
             #shifting events prior to new event to make space for it
             done = False
             previous_queue.pop() #removing preevent from previous queue
@@ -120,6 +132,7 @@ def new_save_with_overlap(event, other_events):
                     done = True
 
         if postshift:
+            print("postshift", postshift)
             done = False
             post_queue.reverse() #i think reversing the popping from the end might be more efficient overall
 
@@ -135,21 +148,27 @@ def new_save_with_overlap(event, other_events):
                 #if it doesnt go out of range
                 
                 postevent.save(bypass=True)
-                new_prev = post_queue.pop() #event prior to postevent
-                if postevent.end_time > new_prev.start_time_time: #if it no need to be shifted we are done else repeat
-                    postevent = new_prev
-                    
+
+                if post_queue:
+                    new_prev = post_queue.pop() #event prior to postevent
+                    if postevent.end_time > new_prev.start_time_time: #if it no need to be shifted we are done else repeat
+                        postevent = new_prev
+                        
+                    else:
+                        done = True
                 else:
-                    done = True
+                    #we have adjusted all already
+                    done=True
 
-
+        #space has been made for event by now so just save
         event.save(bypass=True)
     
         return True
     
-    except ValueError:
+    except Exception as e:
+        print(e)
         #returning to prior state
         for other_event in new_copy:
-            event.save(bypass=True)
+            other_event.save(bypass=True)
         return False
     

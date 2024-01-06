@@ -279,6 +279,7 @@ class DailyEventItem(APIView):
         event = self.get_object(request, pk)
 
         if event:
+            print(request.data)
             serializer = EventSerializer(instance=event, data=request.data)
 
             if serializer.is_valid():

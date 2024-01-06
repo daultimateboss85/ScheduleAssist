@@ -399,6 +399,11 @@ function create_Form(schedule_id, event_details, box_number){
     description.classList.add("description");
     bottom.append(description);
 
+    let overlap = document.createElement("input");
+    overlap.setAttribute("name", "overlap");
+    overlap.setAttribute("type", "checkbox");
+    bottom.append(overlap);
+
     // populate if event box
     if (event_details){
         title_input.value = event_details["title"];
@@ -435,6 +440,7 @@ function create_Form(schedule_id, event_details, box_number){
         })
         .then(res => res.json())
         .then(result => {
+            console.log(result);
             
             load_schedule(result["schedule"]);
         }) 

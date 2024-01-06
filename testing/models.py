@@ -166,10 +166,7 @@ class DailyEvent(models.Model):
                 new_save_with_overlap(self, other_events)
                     
         else:
-            super.save(*args, **kwargs)
-
-
-
+            super().save(*args, **kwargs)
 
 
 class MiscEvent(models.Model):
