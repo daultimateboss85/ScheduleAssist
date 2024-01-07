@@ -247,6 +247,7 @@ class DailyEventList(APIView):
             serializer = EventSerializer(data=request.data)
 
             if serializer.is_valid():
+                print("hey im valid")
                 try:
                     newly_created = serializer.save(schedule=schedule)
                     new_serializer = EventSerializer(newly_created)
@@ -262,6 +263,7 @@ class DailyEventList(APIView):
 
 class DailyEventItem(APIView):
     """Retrieve, update and delete daily events"""
+    permission_classes = [IsAuthenticated]
 
     def get_object(self, request, pk):
         return get_event(request, pk)
@@ -279,7 +281,6 @@ class DailyEventItem(APIView):
         event = self.get_object(request, pk)
 
         if event:
-            print(request.data)
             serializer = EventSerializer(instance=event, data=request.data)
 
             if serializer.is_valid():
@@ -290,7 +291,7 @@ class DailyEventItem(APIView):
                     return Response(new_serializer.data)
 
                 except ValueError:
-                    return Response("INvalid times", status=status.HTTP_400_BAD_REQUEST)
+                    return Response("Invalid times", status=status.HTTP_400_BAD_REQUEST)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -307,6 +308,8 @@ class DailyEventItem(APIView):
 
 
 class CopySchedule(APIView):
+    """Copy a schedule into other schedule(s)"""
+    permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser]
     # copy from_id schedule into to_id schedule
 
@@ -343,3 +346,24 @@ class CopySchedule(APIView):
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
  
+
+class ClearSchedule(APIView):
+    """Clear a Schedule"""
+    
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self, request, sched_id):
+        return get_schedule(request, sched_id)
+    
+    def put(self, request, sched_id):
+        schedule = self.get_object(request, sched_id)
+
+        if schedule:
+            events = schedule.events_set
+            for event in events:
+                event.delete()
+
+            return Response({"message":"Schedule Cleared"})
+
+        return Response({"message":"Bad request"}, status.HTTP_400_BAD_REQUEST)
+    

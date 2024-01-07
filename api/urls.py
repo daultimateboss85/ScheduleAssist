@@ -27,11 +27,14 @@ urlpatterns = [
     path("Schedule/<str:sched_id>/events", views.DailyEventList.as_view(), name="event-list"),
 
     #get event, update, delete
-    path("Events/<str:pk>", views.DailyEventItem.as_view(), name="event-item"),
+    path("Events/<str:pk>/", views.DailyEventItem.as_view(), name="event-item"),
 
     #copy a schedule to another
     path("Copy/Schedule/<str:from_id>/",views.CopySchedule.as_view(),  name="copy-schedule"),
-
+    
+    #clear a schedule ie delete all events in a schedule
+    path("Clear/Schedule/<str:sched_id>/", views.ClearSchedule.as_view(), name="clear-schedule"),
+    
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 

@@ -74,3 +74,23 @@ class EventSerializer(serializers.ModelSerializer):
             to_create.save(overlap=True)
 
         return to_create
+    
+    def update(self, instance,validated_data):
+        # differentiating between events that will overlap or not
+        print("instance type", type(instance))
+        overlap = validated_data.pop("overlap", None)
+        print(type(instance.start_time))
+        print(instance.start_time)
+        print("validated data", validated_data)
+
+        for attr, value in validated_data.items():
+            print("hello")
+            print(type(value))
+            setattr(instance, attr, value)
+        
+        if not overlap:
+            instance.save()
+        else:
+            instance.save(overlap=True)
+
+        return instance

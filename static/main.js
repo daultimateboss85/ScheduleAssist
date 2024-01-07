@@ -203,8 +203,10 @@ function load_schedule(schedule){
         let title_container = document.createElement("div");
         schedule_column.append(title_container);
         title_container.classList.add("schedule-name");
-
+        title_container.setAttribute("data-schedtitle", schedule["id"]);
         title_container.innerHTML += DAY_LIST[Number(schedule["name"])];
+
+        title_container.addEventListener("click", (event) => display_schedule_options(event,schedule) );
         // end of title
 
         // event column
@@ -284,7 +286,7 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
     shifted down with offset - in order to be able to have a higher global z-index than other event 
     containers */
     event.stopPropagation();
- 
+    
     //clear other popups on screen
     clear_popups();
     
@@ -331,7 +333,7 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
 }
 
 function create_Form(schedule_id, event_details, box_number){
-    //Creates forms different if event box or event
+    /* Creates forms different if event box or event */
     let form = document.createElement("form");
 
     let top = document.createElement("div");
@@ -425,65 +427,75 @@ function create_Form(schedule_id, event_details, box_number){
         event.stopPropagation();
     })
 
-    form.addEventListener("submit", (event)=>{
+    form.addEventListener("submit", async (event)=>{
         event.preventDefault();
         //if event details then post else put
         let endpoint = event_details ? `api/Events/${event_details["id"]}` : `api/Schedule/${schedule_id}/events`;
         let method =  event_details ? "PUT" : "POST";
 
-        fetch(endpoint, {
-            method: method,
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-            },
-            body: new FormData(form)
-        })
-        .then(res => res.json())
-        .then(result => {
-            console.log(result);
+        // fetch(endpoint, {
+        //     method: method,
+        //     headers: {
+        //         Authorization: `Bearer ${localStorage.getItem("token")}`
+        //     },
+        //     body: new FormData(form)
+        // })
+        // .then(res => res.json())
+        // .then(result => {
+        //     console.log(result);
             
-            load_schedule(result["schedule"]);
-        }) 
+        //     load_schedule(result["schedule"]);
+        // }) 
+
+        response = await myFetch(endpoint, method, new FormData(form));
+        flash_message(response);
+        console.log(response);
     })
 
     return form;
 }
 
-async function myFetch(endpoint, method="GET"){
-
+async function myFetch(endpoint, method="GET", body){
+    /* allows for me to get request result */
     let result = await fetch(endpoint, {
         method: method,
         headers:{
             Authorization: `Bearer ${localStorage.getItem("token")}`
-        }})
+        },
+        body: body})
         .then(res => res.json())
         
     return result;
 }
 
 function clear_screen(){
-    // clear screen mainly for calendar switching
+    /* clear screen mainly for calendar switching */
 
     //clear sidebar
     document.querySelector("#sidebar").innerHTML  = "";
     //clear grid
     document.querySelector(".label-col").innerHTML =  "";
-
     document.querySelectorAll(".schedule-col").forEach(column => column.innerHTML = "");
 
 }
 
 function clear_popups(){
-    // clicking anywhere removes popup forms
+    /* handles clearing of popup forms and menus*/
     let popups = document.querySelectorAll(".popup-form");
     popups.forEach((form)=>{
         form.classList.add("disappear");
         form.style.display = "none";
     }) 
+
+    let menus = document.querySelectorAll(".sched-menu");
+    menus.forEach((menu)=>{
+        menu.classList.add("disappear");
+        menu.style.display = "none";
+    }) 
 }
 
 function parse_time(event){
-    // parsing event start and end times
+    /* Function handling parsing of times */
     let start_time = event["start_time"];
     let end_time = event["end_time"];
 
@@ -506,3 +518,24 @@ function parse_time(event){
     return [start_hour, start_minute, time_difference, hour_difference, gap_number, end_hour, end_minute];
 }
 
+function flash_message(message){
+    /* Function handling display of messages */
+    let container = document.createElement("div");
+    container.innerHTML += `${message}`;
+    container.classList.add("message", "disappear");
+    document.body.append(container);
+}
+
+
+function display_schedule_options(event, schedule){
+    clear_popups();
+    event.stopPropagation();
+    console.log(schedule);
+    let box = document.querySelector(`div[data-schedtitle="${schedule["id"]}"]`)
+
+    let menu = document.createElement("div");
+    menu.classList.add("sched-menu");
+    menu.innerHTML += "Copy";
+
+    box.append(menu);
+}

@@ -66,7 +66,6 @@ def new_save_with_overlap(event, other_events):
     #other_events should be ordered  
     try:
         #some constants needed 
-        zero_time = time(0)
         zero_time_delta = timedelta(0)
         
         preevent = None
@@ -87,7 +86,6 @@ def new_save_with_overlap(event, other_events):
 
             elif difference < zero_time_delta:
                 postevent = other_event
-                print("Checked post", postevent)
                 post_queue = other_events[i+1:]
                 break       
             
@@ -97,8 +95,6 @@ def new_save_with_overlap(event, other_events):
                 #no event has been touched yet so just return false
                 return False
 
-        print("prevent",preevent)
-        print("postevent",postevent)
         #now check if new event overlaps preevent or postevent
         #we already know their start time's relation to new event
         if preevent:
@@ -110,7 +106,6 @@ def new_save_with_overlap(event, other_events):
                 postshift = subtract_times(event.end_time, postevent.start_time)
 
         if preshift:
-            print("Preshift", preshift)
             #shifting events prior to new event to make space for it
             done = False
             previous_queue.pop() #removing preevent from previous queue
@@ -124,17 +119,20 @@ def new_save_with_overlap(event, other_events):
                     raise ValueError
                        
                 preevent.save(bypass=True)
-                new_prev = previous_queue.pop() #event prior to preevent
-                if preevent.start_time < new_prev.end_time: #if it doesnt need to be shifted we are done else repeat
-                    preevent = new_prev
-                
+
+                if previous_queue:
+                    new_prev = previous_queue.pop() #event prior to preevent
+                    if preevent.start_time < new_prev.end_time: #if it doesnt need to be shifted we are done else repeat
+                        preevent = new_prev
+                    
+                    else:
+                        done = True
                 else:
-                    done = True
+                    done=True #we have adjusted all already
 
         if postshift:
-            print("postshift", postshift)
             done = False
-            post_queue.reverse() #i think reversing the popping from the end might be more efficient overall
+            post_queue.reverse() #i think reversing the list then popping from the end might be more efficient overall
 
             while not done:
                 #shift postevent backwards
@@ -146,7 +144,6 @@ def new_save_with_overlap(event, other_events):
                     raise ValueError
 
                 #if it doesnt go out of range
-                
                 postevent.save(bypass=True)
 
                 if post_queue:
@@ -170,5 +167,5 @@ def new_save_with_overlap(event, other_events):
         #returning to prior state
         for other_event in new_copy:
             other_event.save(bypass=True)
-        return False
-    
+                
+        raise ValueError
