@@ -1,5 +1,5 @@
 from testing.models import ScheduleCalendar, Schedule, DailyEvent
-from django.http import Http404
+
 from .serializers import CalendarSerializer, ScheduleSerializer, EventSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,8 +8,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import JSONParser
 
-
-import json
 
 from .utils import get_calendar, get_schedule, get_event
 
@@ -159,15 +157,19 @@ class ScheduleList(APIView):
 
             if serializer.is_valid():
                 value = serializer.validated_data.get("value", 1)
-                newly_created = serializer.save(
-                    calendar=calendar, value=value
-                )  # setting the calendar and value of schedule
 
-                # so that newly created object can be returned, might refactor
-                new_serializer = ScheduleSerializer(newly_created)
+                try:
+                    newly_created = serializer.save(
+                        calendar=calendar, value=value
+                    )  # setting the calendar and value of schedule
 
-                return Response(new_serializer.data, status=status.HTTP_201_CREATED)
+                    # so that newly created object can be returned, might refactor
+                    new_serializer = ScheduleSerializer(newly_created)
 
+                    return Response(new_serializer.data, status=status.HTTP_201_CREATED)
+                except Exception as e:
+                    return Response({"message": "Schedule already exists"}, status.HTTP_400_BAD_REQUEST)
+            print("here")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -349,7 +351,7 @@ class CopySchedule(APIView):
 
 class ClearSchedule(APIView):
     """Clear a Schedule"""
-    
+
     permission_classes = [IsAuthenticated]
     
     def get_object(self, request, sched_id):

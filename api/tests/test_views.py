@@ -215,7 +215,7 @@ class ScheduleCalendarItemViewTestCase(GenTest):
 
 
 class ScheduleListView(GenTest):
-
+    """Testing ScheduleListView"""
     def test_get_schedules_of_calendar_of_anonymous_user(self):
         """Test appropriate reponse is returned"""
 
@@ -235,7 +235,7 @@ class ScheduleListView(GenTest):
         #8 calendars are created by default
         self.assertEqual(len(response.json()), 8)
 
-    def test_post_create_schedule_appropriate_data(self):
+    def test_create_schedule_with_appropriate_data(self):
 
         response = self.client.post(reverse("schedule-list", args=[self.main_id]), data={
             "name": "0", 
@@ -249,7 +249,32 @@ class ScheduleListView(GenTest):
         self.assertEqual(res["calendar"]["name"] , "Daily Calendar")
         self.assertEqual(self.main_calendar.schedules_set.count(), 9)
 
-"""
+    def test_create_schedule_that_already_exists(self):
+        """Test appropriate response if you try to create a schedule that exists"""
+        response = self.client.post(reverse("schedule-list", args=[self.main_id]), data=
+                                    {"name":"0", "value":1})
+        
+        res = response.json()
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res["message"], "Schedule already exists")
+
+
+    def test_create_schedule_inappropriate_data(self):
+        """Test appropriate response returned if inappropriate data is used to create schedule"""
+
+        response = self.client.post(reverse("schedule-list", args=[self.main_id]), data={
+            "name": "9", 
+            "value": "4"
+        })
+        print(response)
+        print(response.json())
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertContains(response, "")
+        
+
+        """
 T#o test
 #
 t#est crud  of calendars

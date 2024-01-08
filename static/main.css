@@ -179,7 +179,13 @@ textarea{
     top:103%;
     width: 100%;
     background-color: rgb(216, 212, 212);
+
+    div{
+        border-bottom: solid 2px black;
+    }
 }
+
+
 
 /* message utils */
 .message{
@@ -213,7 +219,6 @@ textarea{
     }
 }
 
-
 @keyframes slideInRight{
     0%{
         transform: translateX(3rem);
@@ -225,6 +230,28 @@ textarea{
         opacity: 100%;
         transform: translateX(0); 
     }
+}
+
+@keyframes slideInTop{
+    0%{
+        transform: scaleY(0);
+        /* opacity: 0%; */
+    }
+    100%{
+        transform: scaleY(1);
+        /* opacity: 100%; */
+    }
+}
+
+@keyframes scaleOut{
+    0%{
+        transform: scaleY(1);
+        display: block;
+    }
+    100%{
+        transform: scaleY(0);
+        display: none;
+        }
 }
 
 @keyframes disappear{
@@ -250,6 +277,15 @@ textarea{
 
 .slideInRight{
     animation-name: slideInRight;
+}
+
+.slideInTop{
+    animation-name: slideInTop;
+   transform-origin: top;
+}
+
+.scaleOut{
+    animation-name: scaleOut;   
 }
 
 .disappear{

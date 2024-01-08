@@ -489,8 +489,8 @@ function clear_popups(){
 
     let menus = document.querySelectorAll(".sched-menu");
     menus.forEach((menu)=>{
-        menu.classList.add("disappear");
-        menu.style.display = "none";
+        menu.classList.add("scaleOut");
+        //menu.style.display = "none";
     }) 
 }
 
@@ -534,8 +534,14 @@ function display_schedule_options(event, schedule){
     let box = document.querySelector(`div[data-schedtitle="${schedule["id"]}"]`)
 
     let menu = document.createElement("div");
-    menu.classList.add("sched-menu");
-    menu.innerHTML += "Copy";
-
+    menu.classList.add("sched-menu", "animate", "slideInTop");
     box.append(menu);
+
+    let copy = document.createElement("div");
+    copy.innerHTML += "Copy";
+    
+    let clear = document.createElement("div");
+    clear.innerHTML += "Clear";
+
+    menu.append(copy,clear);
 }
