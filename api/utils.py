@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from .views import ScheduleCalendar, Schedule, DailyEvent
 
 # helper functions 

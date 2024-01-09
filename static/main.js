@@ -436,7 +436,7 @@ function create_Form(schedule_id, event_details, box_number){
 
         let response = await myFetch(endpoint, method, new FormData(form));
         load_schedule(response["schedule"])
-        flash_message(response);
+        flash_message("done", 200);
         console.log(response);
     })
 
@@ -526,21 +526,30 @@ function parse_time(event){
     return [start_hour, start_minute, time_difference, hour_difference, gap_number, end_hour, end_minute];
 }
 
-function flash_message(message){
+function flash_message(message, status_code){
     /* Function handling display of messages */
     let container = document.createElement("div");
     container.innerHTML += `${message}`;
-    container.classList.add("message", "disappear");
+
+    let message_class = Number((status_code / 100).toFixed(0));
+    let type;
+    if ( message_class == 2){
+        type = "success";
+    }else{
+        type = "failre";
+    }
+
+    container.classList.add("message", type);
     document.body.append(container);
 }
-
 
 function display_schedule_options(event, schedule){
     clear_popups();
     event.stopPropagation();
-
+    //box that was clicked
     let box = document.querySelector(`div[data-schedtitle="${schedule["id"]}"]`)
 
+    //dropdown menu
     let menu = document.createElement("div");
     menu.classList.add("sched-menu", "animate", "slideInTop");
     box.append(menu);
@@ -551,23 +560,24 @@ function display_schedule_options(event, schedule){
     //copy schedules ---------------------------------------------------------------------
     copy.addEventListener("click", async (event)=> {
         event.stopPropagation();
+        //get all schedule titles
         let titles = document.querySelectorAll(".schedule-name");
         titles.forEach((title)=>{
             let other_id = title.getAttribute("data-schedtitle")
-            if ( other_id != schedule["id"]){
+            if ( other_id != schedule["id"]){ //if title is not title that was clicked
             let checkbox = document.createElement("input");
             checkbox.addEventListener("click", event => event.stopPropagation())
             checkbox.setAttribute("type","checkbox")
             checkbox.setAttribute("data-schedid", other_id);
             checkbox.classList.add("checkbox");
-            title.append(checkbox);}})
+            title.append(checkbox);}})//add checkbox
         
         let to_side = document.createElement("div");
         to_side.classList.add("to-side", "animate", "scaleInLeft");
         copy.append(to_side)
 
         let done = document.createElement("div");
-        let body = [];
+        let body = []; //hold id's to be copied to
         done.innerHTML += "Done";
         done.addEventListener("click", async (event)=>{
             let titles = document.querySelectorAll(".checkbox");

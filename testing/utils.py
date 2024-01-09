@@ -1,7 +1,6 @@
 from datetime import datetime, date, timedelta, time
 import copy
 
-
 def is_good_event(event, other_events):
     for other_event in other_events:
         if (
@@ -54,10 +53,8 @@ def add_times(first_time, second_time):
     try:
         return time(hour, minute, seconds)
     except:
-        print("This was the porbl")
+        raise ValueError("This is the problem")
 
-#what if no event after preevent
-#what if first event is postevent
 def new_save_with_overlap(event, other_events):
     #straight up copying events so can reset state if things go wrong
     other_events = list(other_events)
@@ -101,61 +98,61 @@ def new_save_with_overlap(event, other_events):
             if event.start_time < preevent.end_time:
                 preshift = subtract_times(preevent.end_time, event.start_time)
 
+                #shifting events prior to new event to make space for it
+                done = False
+                previous_queue.pop() #removing preevent from previous queue
+
+                while not done:
+                    #shift preevent backwards
+                    try:
+                        preevent.start_time =  subtract_times(preevent.start_time, preshift)  
+                        preevent.end_time = subtract_times(preevent.end_time, preshift)
+                    except ValueError: #if shifted out of range value error is raised
+                        raise ValueError
+                        
+                    preevent.save(bypass=True)
+
+                    if previous_queue:
+                        new_prev = previous_queue.pop() #event prior to preevent
+                        if preevent.start_time < new_prev.end_time: #if it doesnt need to be shifted we are done else repeat
+                            preevent = new_prev
+                        
+                        else:
+                            done = True
+                    else:
+                        done=True #we have adjusted all already
+
+
+
         if postevent:
             if event.end_time > postevent.start_time:
                 postshift = subtract_times(event.end_time, postevent.start_time)
 
-        if preshift:
-            #shifting events prior to new event to make space for it
-            done = False
-            previous_queue.pop() #removing preevent from previous queue
+                done = False
+                post_queue.reverse() #i think reversing the list then popping from the end might be more efficient overall
 
-            while not done:
-                #shift preevent backwards
-                try:
-                    preevent.start_time =  subtract_times(preevent.start_time, preshift)  
-                    preevent.end_time = subtract_times(preevent.end_time, preshift)
-                except ValueError: #if shifted out of range value error is raised
-                    raise ValueError
-                       
-                preevent.save(bypass=True)
+                while not done:
+                    #shift postevent backwards
+                    try:
+                        postevent.start_time =  add_times(postevent.start_time, postshift)  
+                        postevent.end_time = add_times(postevent.end_time, postshift)
+                    #if it goes out of range raise value error add_times raises valueerror
+                    except ValueError: 
+                        raise ValueError
 
-                if previous_queue:
-                    new_prev = previous_queue.pop() #event prior to preevent
-                    if preevent.start_time < new_prev.end_time: #if it doesnt need to be shifted we are done else repeat
-                        preevent = new_prev
-                    
+                    #if it doesnt go out of range
+                    postevent.save(bypass=True)
+
+                    if post_queue:
+                        new_prev = post_queue.pop() #event prior to postevent
+                        if postevent.end_time > new_prev.start_time: #if it no need to be shifted we are done else repeat
+                            postevent = new_prev
+                            
+                        else:
+                            done = True
                     else:
-                        done = True
-                else:
-                    done=True #we have adjusted all already
-
-        if postshift:
-            done = False
-            post_queue.reverse() #i think reversing the list then popping from the end might be more efficient overall
-
-            while not done:
-                #shift postevent backwards
-                try:
-                    postevent.start_time =  add_times(postevent.start_time, postshift)  
-                    postevent.end_time = add_times(postevent.end_time, postshift)
-                #if it goes out of range raise value error add_times raises valueerror
-                except ValueError: 
-                    raise ValueError
-
-                #if it doesnt go out of range
-                postevent.save(bypass=True)
-
-                if post_queue:
-                    new_prev = post_queue.pop() #event prior to postevent
-                    if postevent.end_time > new_prev.start_time_time: #if it no need to be shifted we are done else repeat
-                        postevent = new_prev
-                        
-                    else:
-                        done = True
-                else:
-                    #we have adjusted all already
-                    done=True
+                        #we have adjusted all already
+                        done=True
 
         #space has been made for event by now so just save
         event.save(bypass=True)
@@ -167,5 +164,5 @@ def new_save_with_overlap(event, other_events):
         #returning to prior state
         for other_event in new_copy:
             other_event.save(bypass=True)
-                
+
         raise ValueError

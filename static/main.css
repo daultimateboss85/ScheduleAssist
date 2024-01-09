@@ -222,6 +222,14 @@ textarea{
     top: 15%;
     left: 50%;
     background-color: #D2D5DE;
+
+    .success{
+        background-color: aquamarine;
+    }
+
+    .failure{
+        background-color: deeppink;
+    }
 }
 
 /* utility classes */

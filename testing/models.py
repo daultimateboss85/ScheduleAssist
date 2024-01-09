@@ -150,9 +150,10 @@ class DailyEvent(models.Model):
         #kwarg indicating if object should be saved without checking if its time conflicts with others 
         bypass: bool = kwargs.pop("bypass", None) 
 
+        #if we dont want to bypass error checking and other checks
         if not bypass:
             overlap = kwargs.pop("overlap", None)
-  
+            #if an event that shouldnt overlap with others
             if not overlap:
                 try:
                     allowed = is_good_event(self, other_events)
@@ -161,10 +162,10 @@ class DailyEvent(models.Model):
                 
                 if allowed:
                     super().save(*args, **kwargs)
-            
+            #event overlaps shift other events to make space
             else:
                 new_save_with_overlap(self, other_events)
-                    
+        #bypass checking for conflicts and others          
         else:
             super().save(*args, **kwargs)
 
