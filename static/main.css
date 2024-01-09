@@ -70,7 +70,6 @@
 .label, .schedule-name{
     display: grid;
     background-color: #f3f6f9;
-    top: 0px;
 }
 
 .label-items, .event-col{
@@ -91,6 +90,8 @@
 }
 
 .schedule-name{
+    top:0;
+    cursor: pointer;
     justify-items: center;
     align-items: center;
     position: sticky;
@@ -98,6 +99,19 @@
     z-index: 30;
 }
 
+.gmt{
+    display: flex;
+    top:0;
+    position: sticky;
+    border-bottom: solid var(--row-gap) var(--gap-color);
+    font-size: xx-small;
+    justify-content: flex-end;
+    align-items: flex-end;
+    
+    z-index: 30;
+    background-color: #f3f6f9;
+
+}
 .event-box{
     background-color: var(--event-boxcolor);
     height: var(--row-height);
@@ -175,16 +189,31 @@ textarea{
 }
 
 .sched-menu{
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
     position: absolute;
+   
     top:103%;
-    width: 100%;
+    left:0;
+    width: 150%;
     background-color: rgb(216, 212, 212);
 
     div{
         border-bottom: solid 2px black;
     }
+
+    .to-side{
+        position: absolute;
+        left: 100%;
+    }
 }
 
+.checkbox{
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
 
 
 /* message utils */
@@ -235,11 +264,11 @@ textarea{
 @keyframes slideInTop{
     0%{
         transform: scaleY(0);
-        /* opacity: 0%; */
+        opacity: 0%;
     }
     100%{
         transform: scaleY(1);
-        /* opacity: 100%; */
+        opacity: 100%;
     }
 }
 
@@ -266,6 +295,16 @@ textarea{
     }
 }
 
+@keyframes scaleInLeft{
+    0%{
+        transform: scaleX(0);
+        opacity: 0%;
+    }
+    100%{
+        transform: scaleX(1);
+        opacity: 100%;
+    }
+}
 .animate{
     animation-duration: 500ms;
     animation-fill-mode: both;
@@ -281,11 +320,18 @@ textarea{
 
 .slideInTop{
     animation-name: slideInTop;
-   transform-origin: top;
+    animation-duration: 200ms;
+    transform-origin: top;
 }
 
 .scaleOut{
     animation-name: scaleOut;   
+}
+
+.scaleInLeft{
+    animation-name: scaleInLeft;
+    animation-duration: 200ms;
+    transform-origin: left;
 }
 
 .disappear{

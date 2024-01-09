@@ -125,7 +125,8 @@ function load_calendar(cal_id){
     let label = document.createElement("div");
     first_column.append(label);
         
-    label.classList.add("schedule-name");
+    label.classList.add("gmt");
+
     label.innerHTML += "GMT +00";
     label.setAttribute("data-hour", 0)
 
@@ -430,24 +431,11 @@ function create_Form(schedule_id, event_details, box_number){
     form.addEventListener("submit", async (event)=>{
         event.preventDefault();
         //if event details then post else put
-        let endpoint = event_details ? `api/Events/${event_details["id"]}` : `api/Schedule/${schedule_id}/events`;
+        let endpoint = event_details ? `api/Events/${event_details["id"]}/` : `api/Schedule/${schedule_id}/events`;
         let method =  event_details ? "PUT" : "POST";
 
-        // fetch(endpoint, {
-        //     method: method,
-        //     headers: {
-        //         Authorization: `Bearer ${localStorage.getItem("token")}`
-        //     },
-        //     body: new FormData(form)
-        // })
-        // .then(res => res.json())
-        // .then(result => {
-        //     console.log(result);
-            
-        //     load_schedule(result["schedule"]);
-        // }) 
-
-        response = await myFetch(endpoint, method, new FormData(form));
+        let response = await myFetch(endpoint, method, new FormData(form));
+        load_schedule(response["schedule"])
         flash_message(response);
         console.log(response);
     })
@@ -455,12 +443,14 @@ function create_Form(schedule_id, event_details, box_number){
     return form;
 }
 
-async function myFetch(endpoint, method="GET", body){
+async function myFetch(endpoint, method="GET", content_type="text",body){
     /* allows for me to get request result */
     let result = await fetch(endpoint, {
         method: method,
         headers:{
-            Authorization: `Bearer ${localStorage.getItem("token")}`
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": content_type
+
         },
         body: body})
         .then(res => res.json())
@@ -480,7 +470,7 @@ function clear_screen(){
 }
 
 function clear_popups(){
-    /* handles clearing of popup forms and menus*/
+    /* handles clearing of popup forms and menus and checkboxes*/
     let popups = document.querySelectorAll(".popup-form");
     popups.forEach((form)=>{
         form.classList.add("disappear");
@@ -492,6 +482,11 @@ function clear_popups(){
         menu.classList.add("scaleOut");
         //menu.style.display = "none";
     }) 
+
+    let checkboxes = document.querySelectorAll(".checkbox");
+    checkboxes.forEach((checkbox)=>{
+        checkbox.style.display = "none";})
+
 }
 
 function parse_time(event){
@@ -530,7 +525,7 @@ function flash_message(message){
 function display_schedule_options(event, schedule){
     clear_popups();
     event.stopPropagation();
-    console.log(schedule);
+
     let box = document.querySelector(`div[data-schedtitle="${schedule["id"]}"]`)
 
     let menu = document.createElement("div");
@@ -539,9 +534,59 @@ function display_schedule_options(event, schedule){
 
     let copy = document.createElement("div");
     copy.innerHTML += "Copy";
+
+    //copy schedules ---------------------------------------------------------------------
+    copy.addEventListener("click", async (event)=> {
+        event.stopPropagation();
+        let titles = document.querySelectorAll(".schedule-name");
+        titles.forEach((title)=>{
+            let other_id = title.getAttribute("data-schedtitle")
+            if ( other_id != schedule["id"]){
+            let checkbox = document.createElement("input");
+            checkbox.addEventListener("click", event => event.stopPropagation())
+            checkbox.setAttribute("type","checkbox")
+            checkbox.setAttribute("data-schedid", other_id);
+            checkbox.classList.add("checkbox");
+            title.append(checkbox);}})
+        
+        let to_side = document.createElement("div");
+        to_side.classList.add("to-side", "animate", "scaleInLeft");
+        copy.append(to_side)
+
+        let done = document.createElement("div");
+        let body = [];
+        done.innerHTML += "Done";
+        done.addEventListener("click", async (event)=>{
+            let titles = document.querySelectorAll(".checkbox");
+            for(let i=0; i<titles.length; i++){
+                if (titles[i].checked){
+                body.push(titles[i].getAttribute("data-schedid"));
+                }
+            } 
+            console.log("body", body);
+            let message = await myFetch(`/api/Copy/Schedule/${schedule["id"]}/`, "PUT", 
+            body= JSON.stringify(titles));
+            console.log(message);
+            load_home();           
+        })
+        to_side.append(done);
+
+        let cancel = document.createElement("div");
+        cancel.innerHTML += "Cancel";
+        cancel.addEventListener("click", event=>{
+            event.stopPropagation();
+            clear_popups()});
+        to_side.append(cancel);
+    })
     
+
     let clear = document.createElement("div");
     clear.innerHTML += "Clear";
+    clear.addEventListener("click", async (event)=> {
+        
+        message = await myFetch(`/api/Clear/Schedule/${schedule["id"]}/`,"PUT");
+        console.log("schedule here", schedule);
+        load_schedule(schedule)})
 
     menu.append(copy,clear);
 }
