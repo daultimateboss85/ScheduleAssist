@@ -324,7 +324,7 @@ class CopySchedule(APIView):
         if from_schedule:
             #get list of schedules to copy to from body of request
             #for each in list, copy from_schedule into each
-
+            print(request.data["schedules"])
             for to_id in request.data["schedules"]:
             
                 to_schedule = self.get_object(request, to_id)

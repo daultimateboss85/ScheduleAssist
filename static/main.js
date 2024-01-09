@@ -443,8 +443,9 @@ function create_Form(schedule_id, event_details, box_number){
     return form;
 }
 
-async function myFetch(endpoint, method="GET", content_type="text",body){
+async function myFetch(endpoint, method="GET",body,  content_type=null){
     /* allows for me to get request result */
+    if(content_type){
     let result = await fetch(endpoint, {
         method: method,
         headers:{
@@ -455,7 +456,19 @@ async function myFetch(endpoint, method="GET", content_type="text",body){
         body: body})
         .then(res => res.json())
         
-    return result;
+    return result;}
+    else{
+        let result = await fetch(endpoint, {
+            method: method,
+            headers:{
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+    
+            },
+            body: body})
+            .then(res => res.json())
+            
+        return result;
+    }
 }
 
 function clear_screen(){
@@ -564,8 +577,9 @@ function display_schedule_options(event, schedule){
                 }
             } 
             console.log("body", body);
+            console.log("String", JSON.stringify({"schedules":body}))
             let message = await myFetch(`/api/Copy/Schedule/${schedule["id"]}/`, "PUT", 
-            body= JSON.stringify(titles));
+            body= JSON.stringify({"schedules":body}),  content_type="application/json");
             console.log(message);
             load_home();           
         })
