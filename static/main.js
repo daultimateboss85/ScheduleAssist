@@ -21,10 +21,6 @@ document.addEventListener("DOMContentLoaded", async ()=>{
         clear_popups();
     })
     
-    let fun = await myFetch("api/ScheduleCalendars/", "GET");
-    console.log(fun);
-    // let value = await fun.json();
-    // console.log(value);
 })
 const row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
 const row_gap_float = Number(row_gap.slice(0,-3)) * 16;
@@ -434,14 +430,17 @@ function create_Form(schedule_id, event_details, box_number){
         let endpoint = event_details ? `api/Events/${event_details["id"]}/` : `api/Schedule/${schedule_id}/events`;
         let method =  event_details ? "PUT" : "POST";
 
-        let response = await myFetch(endpoint, method, new FormData(form));
-        load_schedule(response["schedule"])
-        flash_message("done", 200);
-        console.log(response);
+        let [response, status_code] = await myFetch(endpoint, method, new FormData(form));
+        
+        if(Math.floor(status_code/100) == 2){
+            console.log(response)
+        load_schedule(response["object"]["schedule"])}
+        flash_message(response["message"], status_code);
     })
 
     return form;
 }
+
 
 async function myFetch(endpoint, method="GET",body,  content_type=null){
     /* allows for me to get request result */
@@ -454,7 +453,7 @@ async function myFetch(endpoint, method="GET",body,  content_type=null){
 
         },
         body: body})
-        .then(res => res.json())
+        .then(async res => {return [await res.json(), res.status] })
         
     return result;}
     else{
@@ -465,7 +464,7 @@ async function myFetch(endpoint, method="GET",body,  content_type=null){
     
             },
             body: body})
-            .then(res => res.json())
+            .then(async res => {return [await res.json(), res.status] } )
             
         return result;
     }
@@ -536,10 +535,10 @@ function flash_message(message, status_code){
     if ( message_class == 2){
         type = "success";
     }else{
-        type = "failre";
+        type = "failure";
     }
 
-    container.classList.add("message", type);
+    container.classList.add("message", type, "disappear", "long");
     document.body.append(container);
 }
 
@@ -588,7 +587,7 @@ function display_schedule_options(event, schedule){
             } 
             console.log("body", body);
             console.log("String", JSON.stringify({"schedules":body}))
-            let message = await myFetch(`/api/Copy/Schedule/${schedule["id"]}/`, "PUT", 
+            let [message, status_code] = await myFetch(`/api/Copy/Schedule/${schedule["id"]}/`, "PUT", 
             body= JSON.stringify({"schedules":body}),  content_type="application/json");
             console.log(message);
             load_home();           
@@ -608,7 +607,7 @@ function display_schedule_options(event, schedule){
     clear.innerHTML += "Clear";
     clear.addEventListener("click", async (event)=> {
         
-        message = await myFetch(`/api/Clear/Schedule/${schedule["id"]}/`,"PUT");
+        let [message, status_code] = await myFetch(`/api/Clear/Schedule/${schedule["id"]}/`,"PUT");
         console.log("schedule here", schedule);
         load_schedule(schedule)})
 

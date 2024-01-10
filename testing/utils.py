@@ -160,7 +160,6 @@ def new_save_with_overlap(event, other_events):
         return True
     
     except Exception as e:
-        print(e)
         #returning to prior state
         for other_event in new_copy:
             other_event.save(bypass=True)

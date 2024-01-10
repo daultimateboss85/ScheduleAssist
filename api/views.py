@@ -168,7 +168,10 @@ class ScheduleList(APIView):
 
                     return Response(new_serializer.data, status=status.HTTP_201_CREATED)
                 except Exception as e:
-                    return Response({"message": "Schedule already exists"}, status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {"message": "Schedule already exists"},
+                        status.HTTP_400_BAD_REQUEST,
+                    )
             print("here")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -249,14 +252,17 @@ class DailyEventList(APIView):
             serializer = EventSerializer(data=request.data)
 
             if serializer.is_valid():
-                print("hey im valid")
                 try:
                     newly_created = serializer.save(schedule=schedule)
                     new_serializer = EventSerializer(newly_created)
-                    return Response(new_serializer.data, status=status.HTTP_200_OK)
+                    to_send = {"object": new_serializer.data, "message":"Event Created Successfully"}
+                    return Response(
+                        to_send,
+                        status=status.HTTP_201_CREATED,
+                    )
 
                 except ValueError:
-                    return Response("INvalid times", status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"message":"Invalid times"}, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -265,6 +271,7 @@ class DailyEventList(APIView):
 
 class DailyEventItem(APIView):
     """Retrieve, update and delete daily events"""
+
     permission_classes = [IsAuthenticated]
 
     def get_object(self, request, pk):
@@ -290,10 +297,11 @@ class DailyEventItem(APIView):
                 try:
                     newly_created = serializer.save()
                     new_serializer = EventSerializer(newly_created)
-                    return Response(new_serializer.data)
+                    to_send = {"object":new_serializer.data, "message":"Event Updated Successfully"}
+                    return Response(to_send)
 
                 except ValueError:
-                    return Response("Invalid times", status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"message":"Invalid times"}, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -311,6 +319,7 @@ class DailyEventItem(APIView):
 
 class CopySchedule(APIView):
     """Copy a schedule into other schedule(s)"""
+
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser]
     # copy from_id schedule into to_id schedule
@@ -322,14 +331,12 @@ class CopySchedule(APIView):
         from_schedule = self.get_object(request, from_id)
 
         if from_schedule:
-            #get list of schedules to copy to from body of request
-            #for each in list, copy from_schedule into each
+            # get list of schedules to copy to from body of request
+            # for each in list, copy from_schedule into each
             print(request.data["schedules"])
             for to_id in request.data["schedules"]:
-            
                 to_schedule = self.get_object(request, to_id)
                 if to_schedule:
-
                     for event in to_schedule.events_set:
                         event.delete()
 
@@ -342,21 +349,24 @@ class CopySchedule(APIView):
                             schedule=to_schedule,
                         )
                 else:
-                    return Response({"message":"Couldnt copy some schedules"}, status=status.HTTP_400_BAD_REQUEST)
-                    
+                    return Response(
+                        {"message": "Couldnt copy some schedules"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
             return Response({"copied"})
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
- 
+
 
 class ClearSchedule(APIView):
     """Clear a Schedule"""
 
     permission_classes = [IsAuthenticated]
-    
+
     def get_object(self, request, sched_id):
         return get_schedule(request, sched_id)
-    
+
     def put(self, request, sched_id):
         schedule = self.get_object(request, sched_id)
 
@@ -365,7 +375,6 @@ class ClearSchedule(APIView):
             for event in events:
                 event.delete()
 
-            return Response({"message":"Schedule Cleared"})
+            return Response({"message": "Schedule Cleared"})
 
-        return Response({"message":"Bad request"}, status.HTTP_400_BAD_REQUEST)
-    
+        return Response({"message": "Bad request"}, status.HTTP_400_BAD_REQUEST)

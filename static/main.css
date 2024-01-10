@@ -222,14 +222,15 @@ textarea{
     top: 15%;
     left: 50%;
     background-color: #D2D5DE;
+    border-radius: 5px;
+}
 
-    .success{
-        background-color: aquamarine;
-    }
+.success{
+    background-color: #b0efd4;
+}
 
-    .failure{
-        background-color: deeppink;
-    }
+.failure{
+    background-color: rgb(239, 148, 148);
 }
 
 /* utility classes */
@@ -348,6 +349,9 @@ textarea{
  
 }
 
+.long{
+    animation-duration: 5s;
+}
 /* messing around with media queries les go */
 /* not bothering how it looks in portrait mode for now */
 @media (orientation: portrait){
