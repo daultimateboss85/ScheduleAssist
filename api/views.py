@@ -263,8 +263,8 @@ class DailyEventList(APIView):
 
                 except ValueError:
                     return Response({"message":"Invalid times"}, status=status.HTTP_400_BAD_REQUEST)
-
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            to_send = {"object":serializer.errors, "message":"Invalid Data"}
+            return Response(to_send, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -302,8 +302,9 @@ class DailyEventItem(APIView):
 
                 except ValueError:
                     return Response({"message":"Invalid times"}, status=status.HTTP_400_BAD_REQUEST)
-
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+            to_send = {"object":serializer.errors, "message":"Invalid Data"}
+            return Response(to_send, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -312,9 +313,9 @@ class DailyEventItem(APIView):
 
         if event:
             event.delete()
-            return Response({"deleted": "true"})
+            return Response({"message": "Event deleted Successfully"})
 
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message":"Error occured"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CopySchedule(APIView):
@@ -354,7 +355,7 @@ class CopySchedule(APIView):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
-            return Response({"copied"})
+            return Response({"message": "Schedules Copied Successfully"})
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 

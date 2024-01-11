@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async ()=>{
+document.addEventListener("DOMContentLoaded", ()=>{
     //going to make this such that on login get user token
     fetch("api/token/", {
         method: "POST",
@@ -179,7 +179,9 @@ function load_calendar(cal_id){
 function load_schedule(schedule){
     clear_popups();
     let name = schedule["name"];
-
+    let date = new Date;
+    let hour = date.getHours();
+    let weekday = (date.getDay()+1).toString();
     fetch(`api/Schedule/${schedule["id"]}`, {
         headers:{
             Authorization:`Bearer ${localStorage.getItem("token")}`
@@ -224,6 +226,15 @@ function load_schedule(schedule){
             // event listener---------------------------------------------------------
             // click on box triggers procedure to add an event
             event_box.addEventListener("click", (event) => clickbox(event, schedule["id"], i, "box"))
+
+            //adding red line at current time
+            if (name == weekday && i == hour){ //if schedule is today 
+                let red_line = document.createElement("div");
+                red_line.classList.add("red-line");
+                let offset = row_height_float * date.getMinutes() / 60;
+                red_line.style.top = `${offset}px`;
+                event_box.append(red_line);
+            }
         }
 
         let events = schedule["events"];
@@ -340,22 +351,17 @@ function create_Form(schedule_id, event_details, box_number){
         //delete button
         let delete_event = document.createElement("span");
         delete_event.innerHTML += "delete";
-        delete_event.classList.add("material-symbols-outlined");
+        delete_event.classList.add("material-symbols-outlined", "pointer");
         top.append(delete_event);
 
-        delete_event.addEventListener("click", (event)=>{
+        // deleting events ----------------------------------------------------------------------
+        delete_event.addEventListener("click", async (event)=>{
             event.stopPropagation();
+            let [object, status_code] = await myFetch(`api/Events/${event_details["id"]}`, "DELETE");
+            if (eval_status_code(status_code)){
+            load_schedule(event_details["schedule"])};
 
-            fetch(`api/Events/${event_details["id"]}`,{
-                method: "DELETE",
-                headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-            }})
-            .then(res => res.json())
-            .then(result => {
-                load_schedule(event_details["schedule"]);
-            })
-
+            flash_message(object["message"], status_code);
         })
     }
 
@@ -426,14 +432,13 @@ function create_Form(schedule_id, event_details, box_number){
 
     form.addEventListener("submit", async (event)=>{
         event.preventDefault();
-        //if event details then post else put
+        //if event details then  put else post
         let endpoint = event_details ? `api/Events/${event_details["id"]}/` : `api/Schedule/${schedule_id}/events`;
         let method =  event_details ? "PUT" : "POST";
 
         let [response, status_code] = await myFetch(endpoint, method, new FormData(form));
         
-        if(Math.floor(status_code/100) == 2){
-            console.log(response)
+        if(eval_status_code(status_code)){
         load_schedule(response["object"]["schedule"])}
         flash_message(response["message"], status_code);
     })
@@ -551,6 +556,12 @@ function display_schedule_options(event, schedule){
     //dropdown menu
     let menu = document.createElement("div");
     menu.classList.add("sched-menu", "animate", "slideInTop");
+
+    if (event.x > window.innerWidth *3/4){
+        menu.style.right = "0";
+    }else{
+        menu.style.left = "0";
+    }
     box.append(menu);
 
     let copy = document.createElement("div");
@@ -572,25 +583,36 @@ function display_schedule_options(event, schedule){
             title.append(checkbox);}})//add checkbox
         
         let to_side = document.createElement("div");
-        to_side.classList.add("to-side", "animate", "scaleInLeft");
+        to_side.classList.add("to-side", "animate");
+
+        //conditionally rendering to_side
+        if (event.x > window.innerWidth *3/4){
+            to_side.style.right = "105%";
+            to_side.classList.add("scaleInRight");
+        }else{
+            to_side.style.left = "105%";
+            to_side.classList.add("scaleInLeft");
+
+        }
         copy.append(to_side)
 
         let done = document.createElement("div");
         let body = []; //hold id's to be copied to
         done.innerHTML += "Done";
         done.addEventListener("click", async (event)=>{
+            event.stopPropagation();
             let titles = document.querySelectorAll(".checkbox");
             for(let i=0; i<titles.length; i++){
                 if (titles[i].checked){
                 body.push(titles[i].getAttribute("data-schedid"));
                 }
             } 
-            console.log("body", body);
-            console.log("String", JSON.stringify({"schedules":body}))
-            let [message, status_code] = await myFetch(`/api/Copy/Schedule/${schedule["id"]}/`, "PUT", 
+           
+            let [object, status_code] = await myFetch(`/api/Copy/Schedule/${schedule["id"]}/`, "PUT", 
             body= JSON.stringify({"schedules":body}),  content_type="application/json");
-            console.log(message);
-            load_home();           
+            console.log(object["message"]);
+            load_home();
+            flash_message(object["message"], status_code);           
         })
         to_side.append(done);
 
@@ -606,10 +628,17 @@ function display_schedule_options(event, schedule){
     let clear = document.createElement("div");
     clear.innerHTML += "Clear";
     clear.addEventListener("click", async (event)=> {
-        
-        let [message, status_code] = await myFetch(`/api/Clear/Schedule/${schedule["id"]}/`,"PUT");
+        event.stopPropagation();
+        let [object, status_code] = await myFetch(`/api/Clear/Schedule/${schedule["id"]}/`,"PUT");
         console.log("schedule here", schedule);
-        load_schedule(schedule)})
+        load_schedule(schedule)
+        flash_message(object["message"], status_code)}
+        )
 
     menu.append(copy,clear);
+}
+
+
+function eval_status_code(status_code){
+    return Math.floor(status_code / 100) == 2;
 }

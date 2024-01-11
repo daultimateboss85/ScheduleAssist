@@ -119,6 +119,13 @@
     cursor: pointer;   
 }
 
+.red-line{
+    height: 2px;
+    width: 50%;
+    background-color: red;
+    position: absolute;
+    z-index: 25;
+}
 .event-container{
     position: absolute;
     border : solid 1px black;
@@ -193,19 +200,28 @@ textarea{
     flex-direction: column;
     cursor: pointer;
     position: absolute;
-   
+    border-left: solid 2px black;
+    border-right: solid 2px black;
+    border-top: solid 2px black;
+
     top:103%;
-    left:0;
     width: 150%;
-    background-color: rgb(216, 212, 212);
+    background-color: white;
 
     div{
         border-bottom: solid 2px black;
     }
 
     .to-side{
+        border-left: solid 2px black;
+        border-right: solid 2px black;
+        border-top: solid 2px black;
+        border-bottom: none;
         position: absolute;
-        left: 100%;
+        top:0;
+        background-color: white;
+      
+        
     }
 }
 
@@ -315,16 +331,18 @@ textarea{
     }
 }
 .animate{
-    animation-duration: 500ms;
+    animation-duration: 200ms;
     animation-fill-mode: both;
 }
 
 .slideInLeft{
     animation-name: slideInLeft;
+    animation-duration: 500ms;
 }
 
 .slideInRight{
     animation-name: slideInRight;
+    animation-duration: 500ms;
 }
 
 .slideInTop{
@@ -343,6 +361,11 @@ textarea{
     transform-origin: left;
 }
 
+.scaleInRight{
+    animation-name: scaleInLeft;
+    transform-origin: right;
+    
+}
 .disappear{
     animation-fill-mode: forwards;
     animation-name: disappear;

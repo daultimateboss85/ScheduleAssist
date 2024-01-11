@@ -125,7 +125,7 @@ class ScheduleCalendar(models.Model):
 
 
 class DailyEvent(models.Model):
-    title = models.CharField(max_length=255, blank=True)
+    title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     start_time = models.TimeField(blank=True)
     end_time = models.TimeField(blank=True)
