@@ -61,13 +61,44 @@ function load_home(){
             let cal_title = document.createElement("div");
             sidebar.append(cal_title)
 
+            let addcalendar = document.createElement("span");
+            addcalendar.innerHTML += " +";
+
+            //add calendar
+           
+
+
             cal_title.classList.add("title");
-            cal_title.innerHTML += "Calendars";
+            cal_title.append("Calendars" ,addcalendar);
             
             let cal_container = document.createElement("div");
             sidebar.append(cal_container);
             cal_container.classList.add("cal-container")
+            
+            addcalendar.addEventListener("click", (event) =>{
+                console.log("Hello plus");
+                event.stopPropagation();
+                clear_popups();
+                let form = document.createElement("form");
+                let container = document.createElement("div");
+                form.append(container);
+                container.classList.add("sidebar-item", "new-form");
+                
+                let cal_name = document.createElement("input");
+                cal_name.setAttribute("placeholder", "Calendar name");
+                cal_name.setAttribute("name", "name");
+                container.append(cal_name);
+                cal_container.append(form);
+                cal_name.focus();
 
+                form.addEventListener("submit", async (event)=>{
+                    event.preventDefault();
+                    response = await myFetch("api/ScheduleCalendars/", "POST", body= new FormData(form));
+                    console.log(response);
+
+                })
+                
+            })
             //putting calendars into sidebar ------------------------------------------
             result.forEach((calendar) =>{
                 let cal_item = document.createElement("div");
@@ -81,7 +112,7 @@ function load_home(){
                 }
                 
                 //adding event listener so when calendar is clicked it loads calendar --------------------------
-                cal_item.addEventListener("dblclick", ()=>{
+                cal_item.addEventListener("click", ()=>{
                     //change last viewed calendar to clicked one then reload
                     fetch("api/LastViewedCalendar/", {
                         method :"PUT",
@@ -317,14 +348,11 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
         top = offset; //if for event shift to meet event
     }
     
-    console.log("top offset",top);
-
     //if box will go out of page shift form upwards 
     let height = form.offsetHeight; //height of form
     let shift_needed = event.y + height; //indicate we might need shifting
 
     if (shift_needed > window.innerHeight){
-        console.log("maybe needed");
         shift_needed = form.getBoundingClientRect().top + top + height - window.innerHeight;
 
         if (shift_needed > 0 ){//if shift actually needed
@@ -332,7 +360,10 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
 
         }else{form.style.top = `${top}px`; }
         
+    }else{
+        form.style.top = `${top}px`;
     }
+    
     form.classList.add("popup-form","animate");
     
     // if x coordinate is more than half the screen width popup to left of box instead of to right of box 
@@ -520,6 +551,10 @@ function clear_popups(){
     let checkboxes = document.querySelectorAll(".checkbox");
     checkboxes.forEach((checkbox)=>{
         checkbox.style.display = "none";})
+    
+    let new_forms = document.querySelectorAll(".new-form");
+    new_forms.forEach((new_form)=>{
+        new_form.style.display = "none";})
 
 }
 

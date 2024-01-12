@@ -39,6 +39,18 @@
     background-color: var(--event-boxcolor);
     padding: 0.5rem;
     
+    .sidebar-item{
+        cursor: pointer;
+        max-width: 100%;
+    }
+
+    input{
+        width: 100%;
+    }
+
+    .new-form{
+        
+    }
 }
 
 /* contains calendar grid */
@@ -189,9 +201,7 @@ textarea{
     background-color:var(--event-boxcolor)
 }
 
-.sidebar-item{
-    cursor: pointer;
-}
+
 
 
 .material-symbols-outlined {
@@ -264,7 +274,7 @@ textarea{
 
 .title{
     font-weight: 700;
-    font-size: 2rem;
+    font-size: 1.3rem;
 }
 
 @keyframes slideInLeft{
@@ -391,3 +401,9 @@ textarea{
     }
 }
 
+
+@media screen and (min-width:999px){
+    .title{
+        font-size: 1.7rem;
+    }
+}
