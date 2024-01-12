@@ -127,8 +127,8 @@ class ScheduleCalendar(models.Model):
 class DailyEvent(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    start_time = models.TimeField(blank=True)
-    end_time = models.TimeField(blank=True)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
     schedule = models.ForeignKey(
         Schedule, on_delete=models.CASCADE, blank=True, related_name="events"
     )

@@ -172,7 +172,7 @@ class ScheduleList(APIView):
                         {"message": "Schedule already exists"},
                         status.HTTP_400_BAD_REQUEST,
                     )
-            print("here")
+       
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)

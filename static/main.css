@@ -150,30 +150,37 @@
     position: absolute;
     width: 25vw;
     height: 20vh; 
-    top: 0px;
     left: 105%;
     background-color: blanchedalmond;
     cursor: default;
     z-index: 35;
+
+    .container{
+        padding: 3px;
+        position: absolute;
+        background-color: #D2D5DE;
+        
+        div{
+            margin-bottom: 2px;
+        }
+        
+        .time{
+            input{
+                width: 45%;
+            }
+        }
+
+        
+    }
 }
 
-.popup-form-container{
-    position: absolute;
-    height: 30vh;
-    width: 25vw;
-    background-color: #D2D5DE;
-}
+
 
 textarea{
-    width: 100%;
+    width: 90%;
     resize: none;
 }
 
-
-.popup-form div{
-    
-    
-}   
 
 .cal-container{
     margin-top: 3rem;

@@ -31,6 +31,9 @@ const row_height_float = Number(row_height.slice(0,-3)) * 16; //convert to pixel
 
 const DAY_LIST = [ "MASTER", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
+//work around javascript days starting on Sunday
+const DAY_CONVERSION = {7:"0", 1:"1", 2:"2", 3:"3", 4:"4", 5:"5", 6:"6"}
+
 function load_home(){
     //initial calendar load when user logs in
     //get last viewed calendar id, that is the calendar that will be loaded on browser load
@@ -78,7 +81,7 @@ function load_home(){
                 }
                 
                 //adding event listener so when calendar is clicked it loads calendar --------------------------
-                cal_item.addEventListener("click", ()=>{
+                cal_item.addEventListener("dblclick", ()=>{
                     //change last viewed calendar to clicked one then reload
                     fetch("api/LastViewedCalendar/", {
                         method :"PUT",
@@ -181,7 +184,8 @@ function load_schedule(schedule){
     let name = schedule["name"];
     let date = new Date;
     let hour = date.getHours();
-    let weekday = (date.getDay()+1).toString();
+    let weekday = DAY_CONVERSION[date.getDay()];
+  
     fetch(`api/Schedule/${schedule["id"]}`, {
         headers:{
             Authorization:`Bearer ${localStorage.getItem("token")}`
@@ -305,18 +309,22 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
     let form = create_Form(schedule_id, event_details, box_number);
     event_box.append(form);
 
-    form.children[1].firstChild.focus(); //let title input receive focus
+    form.firstChild.childNodes[1].firstChild.focus(); //let title input receive focus
     
     let top = 0; // initial offset of form
 
     if (box_or_event == "event"){
         top = offset; //if for event shift to meet event
     }
+    
+    console.log("top offset",top);
+
     //if box will go out of page shift form upwards 
     let height = form.offsetHeight; //height of form
     let shift_needed = event.y + height; //indicate we might need shifting
 
     if (shift_needed > window.innerHeight){
+        console.log("maybe needed");
         shift_needed = form.getBoundingClientRect().top + top + height - window.innerHeight;
 
         if (shift_needed > 0 ){//if shift actually needed
@@ -329,7 +337,7 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
     
     // if x coordinate is more than half the screen width popup to left of box instead of to right of box 
     let x = event.x;
-    let half_screen_size = window.innerWidth/2;
+    let half_screen_size = window.innerWidth * 3 / 5;
 
     if (x > half_screen_size){
         form.style.left = `-233%`;
@@ -343,9 +351,14 @@ function clickbox(event , schedule_id, box_number, box_or_event, offset, event_d
 function create_Form(schedule_id, event_details, box_number){
     /* Creates forms different if event box or event */
     let form = document.createElement("form");
+    let form_container = document.createElement("div");
+    form.append(form_container);
+    form_container.classList.add("container")
 
     let top = document.createElement("div");
-    form.append(top);
+    form_container.append(top);
+    top.classList.add("top");
+
 
     if(event_details){
         //delete button
@@ -366,7 +379,7 @@ function create_Form(schedule_id, event_details, box_number){
     }
 
     let close = document.createElement("span");
-    close.classList.add("pointer");
+    close.classList.add("pointer", "close");
     close.innerHTML += "&#215;";
     close.addEventListener("click", ()=>{
         clear_popups();
@@ -374,7 +387,7 @@ function create_Form(schedule_id, event_details, box_number){
     top.append(close);
 
     let middle = document.createElement("div");
-    form.append(middle);
+    form_container.append(middle);
 
     let title_input = document.createElement("input");
     title_input.setAttribute("placeholder", "Add Title");
@@ -384,19 +397,20 @@ function create_Form(schedule_id, event_details, box_number){
 
     let start_time = document.createElement("input");
     start_time.setAttribute("name", "start_time");
-    start_time.setAttribute("placeholder", "Start:");
+    start_time.setAttribute("placeholder", "Start");
 
     let end_time = document.createElement("input");
     end_time.setAttribute("name", "end_time");
-    end_time.setAttribute("placeholder", "End:");
+    end_time.setAttribute("placeholder", "End");
     
     let time_div = document.createElement("div");
-    form.append(time_div);
+    time_div.classList.add("time");
+    form_container.append(time_div);
     time_div.append(start_time, end_time);
 
 
     let bottom = document.createElement("div");
-    form.append(bottom);
+    form_container.append(bottom);
 
     let description = document.createElement("textarea");
     description.setAttribute("name", "description");
@@ -404,10 +418,13 @@ function create_Form(schedule_id, event_details, box_number){
     description.classList.add("description");
     bottom.append(description);
 
+    let actual_bottom = document.createElement("div");
+    form_container.append(actual_bottom);
+
     let overlap = document.createElement("input");
     overlap.setAttribute("name", "overlap");
     overlap.setAttribute("type", "checkbox");
-    bottom.append(overlap);
+    actual_bottom.append(overlap);
 
     // populate if event box
     if (event_details){
@@ -421,7 +438,7 @@ function create_Form(schedule_id, event_details, box_number){
     
     let submit = document.createElement("button");
     submit.innerHTML += "Submit";
-    bottom.append(submit)
+    actual_bottom.append(submit)
 
 
     form.addEventListener("click", (event)=>{
@@ -570,6 +587,7 @@ function display_schedule_options(event, schedule){
     //copy schedules ---------------------------------------------------------------------
     copy.addEventListener("click", async (event)=> {
         event.stopPropagation();
+        if (copy.children[0]){clear_children(copy)};//so as to not have many children
         //get all schedule titles
         let titles = document.querySelectorAll(".schedule-name");
         titles.forEach((title)=>{
@@ -641,4 +659,8 @@ function display_schedule_options(event, schedule){
 
 function eval_status_code(status_code){
     return Math.floor(status_code / 100) == 2;
+}
+
+function clear_children(node){
+    node.children[0].remove();
 }
