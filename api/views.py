@@ -72,9 +72,13 @@ class ScheduleCalendarList(APIView):
         serializer = CalendarSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(owner=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            to_send = {"object":serializer.data, "message":"Calendar Created Successfully"}
+            
+            print(type(to_send))
+            return Response(to_send, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        to_send = {"object":serializer.errors, "message":"Error Creating Calendar Successfully"}
+        return Response(to_send, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ScheduleCalendarItem(APIView):

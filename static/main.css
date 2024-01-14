@@ -11,6 +11,9 @@
     font: inherit;
 }
 
+input[type=checkbox]{
+    cursor: pointer;
+}
 
 #container{
     display: grid;
@@ -40,8 +43,22 @@
     padding: 0.5rem;
     
     .sidebar-item{
+        position: relative;
         cursor: pointer;
         max-width: 100%;
+        display: flex;
+        justify-content: space-between;
+        
+        span{
+            display: none;
+        }
+    }
+
+    .sidebar-item:hover{
+        span{
+            display: inline;
+            font-size: 100%;
+        }
     }
 
     input{
@@ -49,7 +66,7 @@
     }
 
     .new-form{
-        
+
     }
 }
 

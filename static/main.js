@@ -32,7 +32,7 @@ const row_height_float = Number(row_height.slice(0,-3)) * 16; //convert to pixel
 const DAY_LIST = [ "MASTER", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
 
 //work around javascript days starting on Sunday
-const DAY_CONVERSION = {7:"0", 1:"1", 2:"2", 3:"3", 4:"4", 5:"5", 6:"6"}
+const DAY_CONVERSION = {0:"7", 1:"1", 2:"2", 3:"3", 4:"4", 5:"5", 6:"6"}
 
 function load_home(){
     //initial calendar load when user logs in
@@ -64,10 +64,6 @@ function load_home(){
             let addcalendar = document.createElement("span");
             addcalendar.innerHTML += " +";
 
-            //add calendar
-           
-
-
             cal_title.classList.add("title");
             cal_title.append("Calendars" ,addcalendar);
             
@@ -75,8 +71,10 @@ function load_home(){
             sidebar.append(cal_container);
             cal_container.classList.add("cal-container")
             
+
+            //add calendar -----------------------------------------------------
             addcalendar.addEventListener("click", (event) =>{
-                console.log("Hello plus");
+              
                 event.stopPropagation();
                 clear_popups();
                 let form = document.createElement("form");
@@ -93,9 +91,16 @@ function load_home(){
 
                 form.addEventListener("submit", async (event)=>{
                     event.preventDefault();
-                    response = await myFetch("api/ScheduleCalendars/", "POST", body= new FormData(form));
-                    console.log(response);
+                    let [response, status_code] = await myFetch("api/ScheduleCalendars/", "POST", body= new FormData(form));
+                    
+                    if (status_code==201){
+                        myFetch("api/LastViewedCalendar/", "PUT", 
+                        body=JSON.stringify({"id": response["object"]["id"]}),"application/json");
+                        clear_screen();
+                        load_home();
+                        flash_message(response["message"], status_code);
 
+                    }
                 })
                 
             })
@@ -105,7 +110,23 @@ function load_home(){
                 cal_container.append(cal_item);
                 
                 cal_item.classList.add("sidebar-item");
-                cal_item.innerHTML += calendar.name;
+                
+                let button_div = document.createElement("div");
+                
+                let edit = document.createElement("span");
+                edit.innerHTML = "edit";
+                edit.classList.add("material-symbols-outlined");
+            
+                
+                let delete_button = document.createElement("span");
+                delete_button.innerHTML = "delete";
+                delete_button.classList.add("material-symbols-outlined");
+            
+                
+                button_div.append(edit, delete_button);
+                
+                
+                cal_item.append( calendar.name, button_div);
 
                 if (calendar["id"] == last_viewed){
                     cal_item.style.backgroundColor = "lightgrey";
@@ -216,7 +237,7 @@ function load_schedule(schedule){
     let date = new Date;
     let hour = date.getHours();
     let weekday = DAY_CONVERSION[date.getDay()];
-  
+    console.log("weekday", weekday);
     fetch(`api/Schedule/${schedule["id"]}`, {
         headers:{
             Authorization:`Bearer ${localStorage.getItem("token")}`
@@ -600,6 +621,7 @@ function flash_message(message, status_code){
 }
 
 function display_schedule_options(event, schedule){
+    /* Dropdown menu for schedules and related functionality */
     clear_popups();
     event.stopPropagation();
     //box that was clicked
@@ -664,6 +686,7 @@ function display_schedule_options(event, schedule){
             let [object, status_code] = await myFetch(`/api/Copy/Schedule/${schedule["id"]}/`, "PUT", 
             body= JSON.stringify({"schedules":body}),  content_type="application/json");
             console.log(object["message"]);
+            clear_screen();
             load_home();
             flash_message(object["message"], status_code);           
         })
