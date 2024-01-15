@@ -125,7 +125,7 @@ class ScheduleCalendarItem(APIView):
             return Response({"message": "Calendar deleted"})
     
         else:
-            return Response({"message": "Cant delete calendar you are currently on"})
+            return Response({"message": "Cant delete calendar you are currently on"}, status.HTTP_400_BAD_REQUEST)
 
 
 class ScheduleList(APIView):

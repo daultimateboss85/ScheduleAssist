@@ -138,9 +138,17 @@ function load_home(){
                     container.append(cal_name);
                     cal_item.replaceWith(form);
                     cal_name.focus();
-
+                    
+                    form.addEventListener("submit", async (event) =>{
+                        event.preventDefault();
+                        let [response, status_code] = await myFetch(`/api/ScheduleCalendars/${calendar["id"]}`, "PUT", new FormData(form));
+                        clear_screen();
+                        load_home();
+                        flash_message(response["message"], status_code);
+                    })
                     cal_name.addEventListener("focusout",(event) => {
                         console.log("Im ou")
+                        form.replaceWith(cal_item);
                     })
                 })
 
@@ -224,6 +232,7 @@ function create_cal_item(cal_id){
 
         cal_name.addEventListener("focusout",(event) => {
             console.log("Im ou")
+            form.replaceWith(cal_item);
         })
     })
 
