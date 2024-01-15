@@ -71,13 +71,14 @@ class ScheduleCalendarList(APIView):
     def post(self, request):
         serializer = CalendarSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(owner=request.user)
+            newly_created = serializer.save(owner=request.user)
             to_send = {"object":serializer.data, "message":"Calendar Created Successfully"}
-            
-            print(type(to_send))
+            request.user.last_viewed_cal = newly_created
+            request.user.save()
+        
             return Response(to_send, status=status.HTTP_201_CREATED)
 
-        to_send = {"object":serializer.errors, "message":"Error Creating Calendar Successfully"}
+        to_send = {"object":serializer.errors, "message":"Error Creating Calendar"}
         return Response(to_send, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -109,19 +110,22 @@ class ScheduleCalendarItem(APIView):
 
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
+                return Response({"message": "Calendar Updated Successfully", "object":serializer.data})
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message":"Error updating calendar", "object":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message":"Error updating calendar"},status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         calendar = self.get_object(request, pk)
 
-        if calendar:
+        if calendar != request.user.last_viewed_cal:
             calendar.delete()
 
-        return Response({"Deleted": "true"})
+            return Response({"message": "Calendar deleted"})
+    
+        else:
+            return Response({"message": "Cant delete calendar you are currently on"})
 
 
 class ScheduleList(APIView):

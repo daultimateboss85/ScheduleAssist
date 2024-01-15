@@ -63,6 +63,7 @@ function load_home(){
 
             let addcalendar = document.createElement("span");
             addcalendar.innerHTML += " +";
+            addcalendar.classList.add("pointer");
 
             cal_title.classList.add("title");
             cal_title.append("Calendars" ,addcalendar);
@@ -89,6 +90,8 @@ function load_home(){
                 cal_container.append(form);
                 cal_name.focus();
 
+                form.addEventListener("click", (event) =>event.stopPropagation());
+
                 form.addEventListener("submit", async (event)=>{
                     event.preventDefault();
                     let [response, status_code] = await myFetch("api/ScheduleCalendars/", "POST", body= new FormData(form));
@@ -113,15 +116,47 @@ function load_home(){
                 
                 let button_div = document.createElement("div");
                 
+                // edit calendar ------------------------------------------------
                 let edit = document.createElement("span");
                 edit.innerHTML = "edit";
                 edit.classList.add("material-symbols-outlined");
+
+                edit.addEventListener("click", async (event) => {
+                    event.stopPropagation();
+                    let form = document.createElement("form");
+
+                    form.addEventListener("click", (event) => event.stopPropagation());
+
+                    let container = document.createElement("div");
+                    form.append(container);
+                    container.classList.add("sidebar-item");
+                    
+                    let cal_name = document.createElement("input");
+                    cal_name.setAttribute("placeholder", "Calendar name");
+                    cal_name.setAttribute("name", "name");
+                    cal_name.setAttribute("value", calendar["name"]);
+                    container.append(cal_name);
+                    cal_item.replaceWith(form);
+                    cal_name.focus();
+
+                    cal_name.addEventListener("focusout",(event) => {
+                        console.log("Im ou")
+                    })
+                })
+
             
-                
+                // delete calendar ---------------------------------------------------------
                 let delete_button = document.createElement("span");
                 delete_button.innerHTML = "delete";
                 delete_button.classList.add("material-symbols-outlined");
-            
+                
+                delete_button.addEventListener("click", async (event) =>{
+                    event.stopPropagation();
+                    let [response, status_code] = await myFetch(`api/ScheduleCalendars/${calendar["id"]}`, "DELETE");
+                    clear_screen();
+                    load_home();
+                    flash_message(response["message"], status_code);
+                })
                 
                 button_div.append(edit, delete_button);
                 
@@ -154,6 +189,60 @@ function load_home(){
             })
         })
         })
+}
+
+function create_cal_item(cal_id){
+    let cal_item = document.createElement("div");
+    cal_container.append(cal_item);
+    
+    cal_item.classList.add("sidebar-item");
+    
+    let button_div = document.createElement("div");
+    
+    // edit calendar ------------------------------------------------
+    let edit = document.createElement("span");
+    edit.innerHTML = "edit";
+    edit.classList.add("material-symbols-outlined");
+
+    edit.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        let form = document.createElement("form");
+
+        form.addEventListener("click", (event) => event.stopPropagation());
+
+        let container = document.createElement("div");
+        form.append(container);
+        container.classList.add("sidebar-item");
+        
+        let cal_name = document.createElement("input");
+        cal_name.setAttribute("placeholder", "Calendar name");
+        cal_name.setAttribute("name", "name");
+        cal_name.setAttribute("value", calendar["name"]);
+        container.append(cal_name);
+        cal_item.replaceWith(form);
+        cal_name.focus();
+
+        cal_name.addEventListener("focusout",(event) => {
+            console.log("Im ou")
+        })
+    })
+
+
+    // delete calendar ---------------------------------------------------------
+    let delete_button = document.createElement("span");
+    delete_button.innerHTML = "delete";
+    delete_button.classList.add("material-symbols-outlined");
+    
+    delete_button.addEventListener("click", async (event) =>{
+        event.stopPropagation();
+        let [response, status_code] = await myFetch(`api/ScheduleCalendars/${cal_id}`, "DELETE");
+        clear_screen();
+        load_home();
+        flash_message(response["message"], status_code);
+    })
+    
+    button_div.append(edit, delete_button);
+    return button_div;
 }
 
 function load_calendar(cal_id){
@@ -237,7 +326,6 @@ function load_schedule(schedule){
     let date = new Date;
     let hour = date.getHours();
     let weekday = DAY_CONVERSION[date.getDay()];
-    console.log("weekday", weekday);
     fetch(`api/Schedule/${schedule["id"]}`, {
         headers:{
             Authorization:`Bearer ${localStorage.getItem("token")}`
@@ -514,7 +602,6 @@ function create_Form(schedule_id, event_details, box_number){
 
     return form;
 }
-
 
 async function myFetch(endpoint, method="GET",body,  content_type=null){
     /* allows for me to get request result */
