@@ -447,20 +447,24 @@ function create_Form(schedule_id, event_details, box_number){
     form.append(form_container);
     form_container.classList.add("container")
 
+    // section containing delete and close button -----------------------------------
+
     let top = document.createElement("div");
     form_container.append(top);
-    top.classList.add("top");
+    top.classList.add("flex-between");
 
+    let delete_span = document.createElement("span");
+    top.append(delete_span);
 
     if(event_details){
         //delete button
-        let delete_event = document.createElement("span");
-        delete_event.innerHTML += "delete";
-        delete_event.classList.add("material-symbols-outlined", "pointer");
-        top.append(delete_event);
+     
+        delete_span.innerHTML += "delete";
+        delete_span.classList.add("material-symbols-outlined", "pointer");
+        top.append(delete_span);
 
         // deleting events ----------------------------------------------------------------------
-        delete_event.addEventListener("click", async (event)=>{
+        delete_span.addEventListener("click", async (event)=>{
             event.stopPropagation();
             let [object, status_code] = await myFetch(`api/Events/${event_details["id"]}`, "DELETE");
             if (eval_status_code(status_code)){
@@ -478,6 +482,7 @@ function create_Form(schedule_id, event_details, box_number){
     })
     top.append(close);
 
+    // section containing title -----------------------------------------
     let middle = document.createElement("div");
     form_container.append(middle);
 
@@ -487,6 +492,7 @@ function create_Form(schedule_id, event_details, box_number){
 
     middle.append(title_input);
 
+    // section containing start and end times -------------------
     let start_time = document.createElement("input");
     start_time.setAttribute("name", "start_time");
     start_time.setAttribute("placeholder", "Start");
@@ -500,7 +506,7 @@ function create_Form(schedule_id, event_details, box_number){
     form_container.append(time_div);
     time_div.append(start_time, end_time);
 
-
+    // section containing description --------------------
     let bottom = document.createElement("div");
     form_container.append(bottom);
 
@@ -510,13 +516,18 @@ function create_Form(schedule_id, event_details, box_number){
     description.classList.add("description");
     bottom.append(description);
 
+    // section containing event overlap and submit button ---------------------------------
     let actual_bottom = document.createElement("div");
     form_container.append(actual_bottom);
+    actual_bottom.classList.add("flex-between");
 
+    let overlap_section = document.createElement("span");
     let overlap = document.createElement("input");
     overlap.setAttribute("name", "overlap");
     overlap.setAttribute("type", "checkbox");
-    actual_bottom.append(overlap);
+    overlap_section.append("Shift Overlap", overlap )
+
+    actual_bottom.append(overlap_section);
 
     // populate if event box
     if (event_details){
@@ -752,7 +763,6 @@ function display_schedule_options(event, schedule){
 
     menu.append(copy,clear);
 }
-
 
 function eval_status_code(status_code){
     return Math.floor(status_code / 100) == 2;

@@ -186,7 +186,6 @@ input[type=checkbox]{
 
     .container{
         padding: 3px;
-        position: absolute;
         background-color: #D2D5DE;
         
         div{
@@ -198,7 +197,16 @@ input[type=checkbox]{
                 width: 45%;
             }
         }
+        
+        .flex-between{
+            display: flex;
+            justify-content: space-between;
+        }
 
+        .close{
+            font-size: 24px;
+            font-weight: 600;
+        }
         
     }
 }
@@ -240,7 +248,7 @@ textarea{
 
     top:103%;
     width: 150%;
-    background-color: white;
+    background-color: var(--event-boxcolor);
 
     div{
         border-bottom: solid 2px black;
@@ -253,7 +261,7 @@ textarea{
         border-bottom: none;
         position: absolute;
         top:0;
-        background-color: white;
+        background-color: var(--event-boxcolor);
       
         
     }
