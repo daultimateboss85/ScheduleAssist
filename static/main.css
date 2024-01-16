@@ -11,7 +11,11 @@
     font: inherit;
 }
 
-input[type=checkbox]{
+input[type=checkbox], input[type=submit]{
+    cursor: pointer;
+}
+
+button{
     cursor: pointer;
 }
 
@@ -65,10 +69,9 @@ input[type=checkbox]{
         width: 100%;
     }
 
-    .new-form{
-
-    }
+    
 }
+
 
 /* contains calendar grid */
 #maingrid{
@@ -182,7 +185,7 @@ input[type=checkbox]{
     left: 105%;
     background-color: blanchedalmond;
     cursor: default;
-    z-index: 35;
+    z-index: 25;
 
     .container{
         padding: 3px;
@@ -291,7 +294,27 @@ textarea{
     background-color: rgb(239, 148, 148);
 }
 
+.confirm{
+    position: fixed;
+    border: solid 2px black;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #D2D5DE;
+
+    div{
+        margin: 3px;
+    }
+}
+
+.flex-around{
+    display: flex;
+    justify-content: space-around;
+}
 /* utility classes */
+.new-form{
+
+}
 
 .pointer{
     cursor: pointer;

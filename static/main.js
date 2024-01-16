@@ -466,11 +466,11 @@ function create_Form(schedule_id, event_details, box_number){
         // deleting events ----------------------------------------------------------------------
         delete_span.addEventListener("click", async (event)=>{
             event.stopPropagation();
-            let [object, status_code] = await myFetch(`api/Events/${event_details["id"]}`, "DELETE");
+            let [object, status_code] = await myFetch(`api/Events/${event_details["id"]}`, "DELETE", null, null, "Are you sure you want to delete this event");
             if (eval_status_code(status_code)){
             load_schedule(event_details["schedule"])};
 
-            flash_message(object["message"], status_code);
+            if(status_code < 1000){flash_message(object["message"], status_code);}
         })
     }
 
@@ -566,20 +566,55 @@ function create_Form(schedule_id, event_details, box_number){
     return form;
 }
 
+async function confirm_before_request(confirmation_message, endpoint, method, body, content_type, ){
+    let confirm = true;
+    /* if confirmation message suplied i need user to confirm if they want request to go through */
+    if (confirmation_message){
+        confirm = false;
+        let confirmation_div = document.createElement("div");
+        confirmation_div.classList.add("confirm", "new-form");
+
+        confirmation_div.addEventListener("click", event=>event.stopPropagation());
+
+        let message_div = document.createElement("div");
+        message_div.innerHTML += confirmation_message;
+        confirmation_div.append(message_div);
+
+        let button_div = document.createElement("div");
+        button_div.classList.add("flex-around");
+        let no_button = document.createElement("button");
+        no_button.innerHTML += "No";
+        no_button.classList.add("failure");
+
+        let yes_button = document.createElement("button");
+        yes_button.innerHTML += "Yes";
+        yes_button.classList.add("success");
+
+        let result = yes_button.addEventListener("click", async event => {
+            await myFetch(endpoint, method, body, content_type)} )        
+        
+        button_div.append(no_button, yes_button);
+
+        confirmation_div.append(button_div);
+
+        document.body.append(confirmation_div);
+    }
+}
+
 async function myFetch(endpoint, method="GET",body,  content_type=null){
     /* allows for me to get request result */
     if(content_type){
-    let result = await fetch(endpoint, {
-        method: method,
-        headers:{
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": content_type
+        let result = await fetch(endpoint, {
+            method: method,
+            headers:{
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": content_type
 
-        },
-        body: body})
-        .then(async res => {return [await res.json(), res.status] })
-        
-    return result;}
+            },
+            body: body})
+            .then(async res => {return [await res.json(), res.status] })
+            
+        return result;}
     else{
         let result = await fetch(endpoint, {
             method: method,
@@ -592,6 +627,7 @@ async function myFetch(endpoint, method="GET",body,  content_type=null){
             
         return result;
     }
+    
 }
 
 function clear_screen(){
