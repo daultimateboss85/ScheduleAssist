@@ -395,6 +395,17 @@ textarea{
         opacity: 100%;
     }
 }
+
+@keyframes scaleIn{
+    0%{
+        transform:scale(0,0);
+        opacity: 0%;
+    }
+    100%{
+        transform: scale(1,1);
+        opacity: 100%;
+    }
+}
 .animate{
     animation-duration: 200ms;
     animation-fill-mode: both;
@@ -435,6 +446,10 @@ textarea{
     animation-fill-mode: forwards;
     animation-name: disappear;
  
+}
+
+.scaleIn{
+    animation-name: scaleIn;
 }
 
 .long{
