@@ -564,55 +564,56 @@ function create_Form(schedule_id, event_details, box_number){
 }
 
 async function confirm_before_request(confirmation_message,other_functions, endpoint, method, body, content_type){
-    let confirm = true;
     /* if confirmation message suplied i need user to confirm if they want request to go through */
     /*
     confirmation_message - is the message that will be displayed before request is allowed or "cancelled"
     other_functions - are functions that might want to be run when user confirms request allow ie presses yes
-    remaining args - are passed to myFetch ie they define the request that should be sent  */
+    remaining args - are passed to myFetch ie they define the request that should be sent
+    if request has message it is displayed   */
 
-    if (confirmation_message){
-        confirm = false;
-        let confirmation_div = document.createElement("div");
-        confirmation_div.classList.add("confirm", "new-form", "animate", "scaleIn");
+    let confirmation_div = document.createElement("div");
+    confirmation_div.classList.add("new-form","confirm", "animate", "scaleIn", );
 
-        confirmation_div.addEventListener("click", event=>event.stopPropagation());
+    confirmation_div.addEventListener("click", event=>event.stopPropagation());
 
-        let message_div = document.createElement("div");
-        message_div.innerHTML += confirmation_message;
-        confirmation_div.append(message_div);
+    let message_div = document.createElement("div");
+    message_div.innerHTML += confirmation_message;
+    confirmation_div.append(message_div);
 
-        let button_div = document.createElement("div");
-        button_div.classList.add("flex-around");
-        let no_button = document.createElement("button");
-        no_button.innerHTML += "No";
-        no_button.classList.add("failure");
+    let button_div = document.createElement("div");
+    button_div.classList.add("flex-around");
+    let no_button = document.createElement("button");
+    no_button.innerHTML += "No";
+    no_button.classList.add("failure");
 
-        //just clear everything if no is clicked
-        no_button.addEventListener("click", event => clear_popups());
+    //just clear everything if no is clicked
+    no_button.addEventListener("click", event => clear_popups());
 
-        let yes_button = document.createElement("button");
-        yes_button.innerHTML += "Yes";
-        yes_button.classList.add("success");
+    let yes_button = document.createElement("button");
+    yes_button.innerHTML += "Yes";
+    yes_button.classList.add("success");
 
-        let result = yes_button.addEventListener("click", async event => {
-            let [response, status_code] = await myFetch(endpoint, method, body, content_type);
-            
-            //run all other functions we want to run if request was successful
-            if( eval_status_code(status_code)){
-            other_functions.forEach((callback)=>{callback()})};
-            
-            if(status_code < 1000){flash_message(response["message"], status_code);}
-            clear_popups(); //remove confirmation form
-        } )        
+    //if request approved for sending
+    let result = yes_button.addEventListener("click", async event => {
+        //send request as normal
+        let [response, status_code] = await myFetch(endpoint, method, body, content_type);
         
-        button_div.append(no_button, yes_button);
+        //run all other functions we want to run if request was successful
+        if( eval_status_code(status_code)){
+        other_functions.forEach((callback)=>{callback()})};
+        
+        //display message that comes with request
+        if(status_code < 1000){flash_message(response["message"], status_code);}
+        clear_popups(); //remove confirmation form
+    } )        
+    
+    button_div.append(no_button, yes_button);
 
-        confirmation_div.append(button_div);
+    confirmation_div.append(button_div);
 
-        document.body.append(confirmation_div);
-    }
+    document.body.append(confirmation_div);
 }
+
 
 async function myFetch(endpoint, method="GET",body,  content_type=null){
     /* allows for me to get request result */
@@ -674,8 +675,8 @@ function clear_popups(){
     
     let new_forms = document.querySelectorAll(".new-form");
     new_forms.forEach((new_form)=>{
-        new_form.classList.add("disappear");
-        new_form.style.display = "none";})
+        new_form.classList.add("disappear");})
+        //new_form.style.display = "none";})
 
 }
 
@@ -744,6 +745,7 @@ function display_schedule_options(event, schedule){
     //copy schedules ---------------------------------------------------------------------
     copy.addEventListener("click", async (event)=> {
         event.stopPropagation();
+        
         if (copy.children[0]){clear_children(copy)};//so as to not have many children
         //get all schedule titles
         let titles = document.querySelectorAll(".schedule-name");
@@ -782,13 +784,14 @@ function display_schedule_options(event, schedule){
                 body.push(titles[i].getAttribute("data-schedid"));
                 }
             } 
-           
-            let [object, status_code] = await myFetch(`/api/Copy/Schedule/${schedule["id"]}/`, "PUT", 
-            body= JSON.stringify({"schedules":body}),  content_type="application/json");
-            console.log(object["message"]);
-            clear_screen();
-            load_home();
-            flash_message(object["message"], status_code);           
+    
+            let result = await confirm_before_request("Are you sure you want to copy into selected schedules?",
+            [clear_screen, load_home], //clear screen and "reload" page if schedules are copied
+            `/api/Copy/Schedule/${schedule["id"]}/`,
+            "PUT",
+            body= JSON.stringify({"schedules":body}),
+            content_type="application/json" )
+        
         })
         to_side.append(done);
 
@@ -805,10 +808,10 @@ function display_schedule_options(event, schedule){
     clear.innerHTML += "Clear";
     clear.addEventListener("click", async (event)=> {
         event.stopPropagation();
-        let [object, status_code] = await myFetch(`/api/Clear/Schedule/${schedule["id"]}/`,"PUT");
-        console.log("schedule here", schedule);
-        load_schedule(schedule)
-        flash_message(object["message"], status_code)}
+        let result = await confirm_before_request("Are you sure you want to clear this schedule",
+        [()=> {load_schedule(schedule);}], //load appropriate schedule if it is cleared
+        `/api/Clear/Schedule/${schedule["id"]}/`, "PUT" )}
+ 
         )
 
     menu.append(copy,clear);
