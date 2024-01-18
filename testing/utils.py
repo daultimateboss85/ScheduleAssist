@@ -60,6 +60,7 @@ def new_save_with_overlap(event, other_events):
     other_events = list(other_events)
     new_copy = copy.deepcopy(other_events)
 
+    restoration_needed = True #
     #other_events should be ordered  
     try:
         #some constants needed 
@@ -89,8 +90,9 @@ def new_save_with_overlap(event, other_events):
             else:
                 #means start of event is same as start of another event
                 #its ambiguous the way to shift such an event
-                #no event has been touched yet so just return false
-                return False
+                #no event has been touched yet so just raise error
+                restoration_needed = False
+                raise ValueError("Ambiguous times")
 
         #now check if new event overlaps preevent or postevent
         #we already know their start time's relation to new event
@@ -160,8 +162,9 @@ def new_save_with_overlap(event, other_events):
         return True
     
     except Exception as e:
-        #returning to prior state
-        for other_event in new_copy:
-            other_event.save(bypass=True)
+        if restoration_needed:
+            #returning to prior state
+            for other_event in new_copy:
+                other_event.save(bypass=True)
 
         raise ValueError

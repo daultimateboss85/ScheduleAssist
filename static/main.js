@@ -460,14 +460,16 @@ function create_Form(schedule_id, event_details, box_number){
         delete_span.innerHTML += "delete";
         delete_span.classList.add("material-symbols-outlined", "pointer");
         top.append(delete_span);
-
+        let counter = 0; //counter for how many times delete button has been clicked
         // deleting events ----------------------------------------------------------------------
         delete_span.addEventListener("click", async (event)=>{
             event.stopPropagation();
+            if (!counter){
             let response = await confirm_before_request("Are you sure you want to delete this event",[
                 ()=>{load_schedule(event_details["schedule"])}],
                 `api/Events/${event_details["id"]}`, "DELETE", null, null, );
-           
+            num++;  }
+
         })
     }
 

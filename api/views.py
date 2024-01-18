@@ -271,6 +271,7 @@ class DailyEventList(APIView):
 
                 except ValueError:
                     return Response({"message":"Invalid times"}, status=status.HTTP_400_BAD_REQUEST)
+                
             to_send = {"object":serializer.errors, "message":"Invalid Data"}
             return Response(to_send, status=status.HTTP_400_BAD_REQUEST)
 
