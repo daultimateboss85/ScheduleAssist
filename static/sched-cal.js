@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", ()=>{
     //going to make this such that on login get user token
-    fetch("api/token/", {
+   /*  fetch("api/token/", {
         method: "POST",
         headers:{
             "Content-Type": "application/json"},
@@ -11,15 +11,23 @@ document.addEventListener("DOMContentLoaded", ()=>{
     .then(result => {
         localStorage.setItem("token", result["access"])
         console.log(result);
-    })
+    }) */
+    let token = localStorage.getItem("token");
 
-    //load home page immediately upon visit
-    load_home();
+    if (token == null){
+        window.location.replace("");
+    }else{
+    
+//load home page immediately upon visit
+        load_home();
 
-    //clicking anywhere else clears any popup forms
-    window.addEventListener("click", ()=>{
-        clear_popups();
-    })
+        //clicking anywhere else clears any popup forms
+        window.addEventListener("click", ()=>{
+            clear_popups();
+        })
+    }
+
+    
     
 })
 const row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
@@ -165,13 +173,14 @@ async function populate_sidebar(calendars){
         let delete_button = document.createElement("span");
         delete_button.innerHTML = "delete";
         delete_button.classList.add("material-symbols-outlined");
-        
+       
         delete_button.addEventListener("click", async (event) =>{
+
             event.stopPropagation();
+            clear_popups();
             let response = await confirm_before_request("Are you sure you want to delete a Calendar",
             [repopulate_sidebar],`api/ScheduleCalendars/${calendar["id"]}`,"DELETE");
             
-            //flash_message(response["message"], status_code);
         })
         
         button_div.append(edit, delete_button);
@@ -468,7 +477,7 @@ function create_Form(schedule_id, event_details, box_number){
             let response = await confirm_before_request("Are you sure you want to delete this event",[
                 ()=>{load_schedule(event_details["schedule"])}],
                 `api/Events/${event_details["id"]}`, "DELETE", null, null, );
-            num++;  }
+            counter++;  }
 
         })
     }
@@ -616,7 +625,6 @@ async function confirm_before_request(confirmation_message,other_functions, endp
     document.body.append(confirmation_div);
 }
 
-
 async function myFetch(endpoint, method="GET",body,  content_type=null){
     /* allows for me to get request result */
     if(content_type){
@@ -662,23 +670,26 @@ function clear_popups(){
     let popups = document.querySelectorAll(".popup-form");
     popups.forEach((form)=>{
         form.classList.add("disappear");
-        form.style.display = "none";
+        form.addEventListener("animationend", ()=>{form.remove()});
     }) 
 
     let menus = document.querySelectorAll(".sched-menu");
     menus.forEach((menu)=>{
         menu.classList.add("scaleOut");
-        //menu.style.display = "none";
+        menu.addEventListener("animationend", ()=>{form.remove()});
+        
     }) 
 
     let checkboxes = document.querySelectorAll(".checkbox");
     checkboxes.forEach((checkbox)=>{
-        checkbox.style.display = "none";})
+        checkbox.remove();})
     
     let new_forms = document.querySelectorAll(".new-form");
     new_forms.forEach((new_form)=>{
-        new_form.classList.add("disappear");})
-        //new_form.style.display = "none";})
+        new_form.classList.add("disappear");
+        new_form.addEventListener("animationend", ()=>{new_form.remove()});
+    })
+      
 
 }
 
