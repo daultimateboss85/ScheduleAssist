@@ -1,24 +1,17 @@
-document.addEventListener("DOMContentLoaded", ()=>{
-    //going to make this such that on login get user token
-   /*  fetch("api/token/", {
-        method: "POST",
-        headers:{
-            "Content-Type": "application/json"},
+import { myFetch, eval_status_code } from "./utils.js";
 
-        body: JSON.stringify({"username": "judah", "password":"thechosenone"})
-    })
-    .then(res => res.json())
-    .then(result => {
-        localStorage.setItem("token", result["access"])
-        console.log(result);
-    }) */
+document.addEventListener("DOMContentLoaded", async ()=>{
+
     let token = localStorage.getItem("token");
 
-    if (token == null){
-        window.location.replace("");
+    if (!token || token=="undefined"){
+        console.log("IT is null");
+        window.location.replace("/")
+
     }else{
-    
-//load home page immediately upon visit
+        console.log("This  should never load");
+        
+        //load home page immediately upon visit
         load_home();
 
         //clicking anywhere else clears any popup forms
@@ -30,6 +23,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
     
     
 })
+
+
+
 const row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
 const row_gap_float = Number(row_gap.slice(0,-3)) * 16;
 
@@ -625,35 +621,6 @@ async function confirm_before_request(confirmation_message,other_functions, endp
     document.body.append(confirmation_div);
 }
 
-async function myFetch(endpoint, method="GET",body,  content_type=null){
-    /* allows for me to get request result */
-    if(content_type){
-        let result = await fetch(endpoint, {
-            method: method,
-            headers:{
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                "Content-Type": content_type
-
-            },
-            body: body})
-            .then(async res => {return [await res.json(), res.status] })
-            
-        return result;}
-    else{
-        let result = await fetch(endpoint, {
-            method: method,
-            headers:{
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-    
-            },
-            body: body})
-            .then(async res => {return [await res.json(), res.status] } )
-            
-        return result;
-    }
-    
-}
-
 function clear_screen(){
     /* clear screen mainly for calendar switching */
 
@@ -830,9 +797,6 @@ function display_schedule_options(event, schedule){
     menu.append(copy,clear);
 }
 
-function eval_status_code(status_code){
-    return Math.floor(status_code / 100) == 2;
-}
 
 function clear_children(node){
     node.children[0].remove();

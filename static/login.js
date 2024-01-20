@@ -1,11 +1,15 @@
+import { myFetch, eval_status_code } from "./utils.js";
+
 document.addEventListener("DOMContentLoaded", ()=>{
 
     let token = localStorage.getItem("token");
 
-    if (token){
+    if (token && token!="undefined"){
+        
         window.location.replace("home");
     }
     else{
+        console.log("YOu have to login");
     //login /register form
     let form = document.createElement("form");
     form.setAttribute("action", "/api/token");
@@ -45,7 +49,19 @@ document.addEventListener("DOMContentLoaded", ()=>{
     let to_register_div = document.createElement("div");
     let register = document.createElement("a");
     register.innerHTML += "Register";
-    register.setAttribute("href", "home");
+    register.setAttribute("href", "");
+
+    //if register clicked change title to register
+    //change button event listener
+    //to_register_div innerhtml to already have an account login
+    //add event listener to login that reverses effect
+    register.addEventListener("click", (event)=>{
+        event.preventDefault();
+        title_div.innerHTML = "Register";
+
+        
+    })
+
     to_register_div.append("Dont have an account yet?", register);
 
     container.append(title_div, name_div, password_div,submit_div, to_register_div);
