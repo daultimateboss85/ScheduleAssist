@@ -1,4 +1,4 @@
-import { myFetch, eval_status_code } from "./utils.js";
+import { myFetch, eval_status_code, flash_message } from "./utils.js";
 
 document.addEventListener("DOMContentLoaded", ()=>{
 
@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
         window.location.replace("home");
     }
     else{
+
+        //endpoint for logging in
+        let endpoint = "/api/token/";
+        let action = "Login";
         console.log("YOu have to login");
     //login /register form
     let form = document.createElement("form");
@@ -52,29 +56,47 @@ document.addEventListener("DOMContentLoaded", ()=>{
     register.setAttribute("href", "");
 
     //if register clicked change title to register
-    //change button event listener
     //to_register_div innerhtml to already have an account login
-    //add event listener to login that reverses effect
+    //add event listener to login that reverses effect (just reload page)
     register.addEventListener("click", (event)=>{
         event.preventDefault();
+        endpoint = "api/Register/"; 
+        action = "Register";
         title_div.innerHTML = "Register";
 
-        
+         to_register_div.innerHTML = "";
+         let login = document.createElement("a");
+         login.setAttribute("href", ""); //reload page if login is clicked
+         login.innerHTML += "login";
+         to_register_div.append("Already have an account? ", login);
+
     })
 
-    to_register_div.append("Dont have an account yet?", register);
+    to_register_div.append("Dont have an account yet? ", register);
 
     container.append(title_div, name_div, password_div,submit_div, to_register_div);
 
 
+
     form.addEventListener("submit", async (event)=>{
         event.preventDefault();
-        let [response, status_code] = await  myFetch("api/token/", "POST", new FormData(form));
+    
+        console.log(endpoint);
+        let [response, status_code] = await  myFetch(endpoint, "POST", new FormData(form));
 
-        if (eval_status_code){
-            localStorage.setItem("token", response["access"]);
-            window.location.replace("home");
+        if (eval_status_code(status_code) ){
+            if (action=="Login"){
+                localStorage.setItem("token", response["access"]);
+                window.location.replace("home");
+            }else{
+                location.reload;
+                flash_message(response["message"], status_code);
+    
+            }
+            
         }
+        
+
     })
 
 

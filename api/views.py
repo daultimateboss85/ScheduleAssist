@@ -1,4 +1,4 @@
-from testing.models import ScheduleCalendar, Schedule, DailyEvent
+from testing.models import ScheduleCalendar, Schedule, DailyEvent, User
 
 from .serializers import CalendarSerializer, ScheduleSerializer, EventSerializer
 from rest_framework.views import APIView
@@ -388,3 +388,19 @@ class ClearSchedule(APIView):
             return Response({"message": "Schedule Cleared"})
 
         return Response({"message": "Bad request"}, status.HTTP_400_BAD_REQUEST)
+
+
+class Register(APIView):
+    def post(self, request):
+
+        try:
+            new_user = User.objects.create_user(
+                username = request.data["username"],
+                password = request.data["password"]
+            )
+
+            return Response({"message": "Registration Successful"}, status=status.HTTP_201_CREATED)
+        
+        except:
+            return Response({"message": "Registration Unsuccessful"}, status=status.HTTP_400_BAD_REQUEST)
+            

@@ -684,22 +684,7 @@ function parse_time(event){
     return [start_hour, start_minute, time_difference, hour_difference, gap_number, end_hour, end_minute];
 }
 
-function flash_message(message, status_code){
-    /* Function handling display of messages */
-    let container = document.createElement("div");
-    container.innerHTML += `${message}`;
 
-    let message_class = Number((status_code / 100).toFixed(0));
-    let type;
-    if ( message_class == 2){
-        type = "success";
-    }else{
-        type = "failure";
-    }
-
-    container.classList.add("message", type, "disappear", "long");
-    document.body.append(container);
-}
 
 function display_schedule_options(event, schedule){
     /* Dropdown menu for schedules and related functionality */

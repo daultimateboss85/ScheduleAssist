@@ -35,6 +35,9 @@ urlpatterns = [
     #clear a schedule ie delete all events in a schedule
     path("Clear/Schedule/<str:sched_id>/", views.ClearSchedule.as_view(), name="clear-schedule"),
     
+    #register a user
+    path("Register/", views.Register.as_view(), name="register"),
+
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
