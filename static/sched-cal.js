@@ -1,4 +1,4 @@
-import { myFetch, eval_status_code } from "./utils.js";
+import { myFetch, eval_status_code, flash_message } from "./utils.js";
 
 document.addEventListener("DOMContentLoaded", async ()=>{
 
@@ -19,11 +19,15 @@ document.addEventListener("DOMContentLoaded", async ()=>{
             clear_popups();
         })
     }
-
+    //logout button functionality ---------------------------------------------------------
+    let logout_button = document.querySelector("#logout");
+    logout_button.addEventListener("click", (event) => {
+        localStorage.setItem("token", undefined);
+        window.location.replace("/");
+    })
     
     
 })
-
 
 
 const row_gap = window.getComputedStyle(document.documentElement).getPropertyValue("--row-gap");
@@ -88,11 +92,11 @@ async function load_home(){
 
         form.addEventListener("submit", async (event)=>{
             event.preventDefault();
-            let [response, status_code] = await myFetch("api/ScheduleCalendars/", "POST", body= new FormData(form));
+            let [response, status_code] = await myFetch("api/ScheduleCalendars/", "POST", new FormData(form));
             
             if (status_code==201){
                 myFetch("api/LastViewedCalendar/", "PUT", 
-                body=JSON.stringify({"id": response["object"]["id"]}),"application/json");
+                JSON.stringify({"id": response["object"]["id"]}),"application/json");
                 clear_screen();
                 load_home();
                 flash_message(response["message"], status_code);
@@ -643,7 +647,7 @@ function clear_popups(){
     let menus = document.querySelectorAll(".sched-menu");
     menus.forEach((menu)=>{
         menu.classList.add("scaleOut");
-        menu.addEventListener("animationend", ()=>{form.remove()});
+        menu.addEventListener("animationend", ()=>{menu.remove()});
         
     }) 
 
@@ -683,8 +687,6 @@ function parse_time(event){
 
     return [start_hour, start_minute, time_difference, hour_difference, gap_number, end_hour, end_minute];
 }
-
-
 
 function display_schedule_options(event, schedule){
     /* Dropdown menu for schedules and related functionality */
@@ -754,8 +756,8 @@ function display_schedule_options(event, schedule){
             [clear_screen, load_home], //clear screen and "reload" page if schedules are copied
             `/api/Copy/Schedule/${schedule["id"]}/`,
             "PUT",
-            body= JSON.stringify({"schedules":body}),
-            content_type="application/json" )
+            JSON.stringify({"schedules":body}),
+            "application/json" )
         
         })
         to_side.append(done);
@@ -781,7 +783,6 @@ function display_schedule_options(event, schedule){
 
     menu.append(copy,clear);
 }
-
 
 function clear_children(node){
     node.children[0].remove();

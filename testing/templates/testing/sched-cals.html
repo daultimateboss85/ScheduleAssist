@@ -2,10 +2,12 @@
 {% load static %}
 
 {% block content %}
-<script type="module"    src="{% static 'sched-cal.js' %}"></script>
+<script type="module"  src="{% static 'sched-cal.js' %}"></script>
 <div id="container">
     <div id="options"></div>
-    <div id ="topbar"></div>
+    <div id ="topbar">
+        <button id="logout">Logout</button>
+    </div>
 
     <div id="sidebar"></div>
     <div id="maingrid">

@@ -18,12 +18,15 @@ document.addEventListener("DOMContentLoaded", ()=>{
     let form = document.createElement("form");
     form.setAttribute("action", "/api/token");
     form.setAttribute("method", "post");
+    form.classList.add("login-form");
 
 
     let container = document.createElement("div");
     form.append(container);
+    container.classList.add("container")
 
     let title_div = document.createElement("div");
+    title_div.classList.add("title");
     title_div.innerHTML += "Login";
 
     let name_div = document.createElement("div");
@@ -40,6 +43,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     password_label.innerHTML+= "Password";
 
     let password = document.createElement("input");
+    password.setAttribute("type", "password");
     password.setAttribute("name", "password");
     password.setAttribute("placeholder", "password");
 
@@ -67,7 +71,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
          to_register_div.innerHTML = "";
          let login = document.createElement("a");
          login.setAttribute("href", ""); //reload page if login is clicked
-         login.innerHTML += "login";
+         login.innerHTML += "Login";
          to_register_div.append("Already have an account? ", login);
 
     })
@@ -81,7 +85,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
     form.addEventListener("submit", async (event)=>{
         event.preventDefault();
     
-        console.log(endpoint);
         let [response, status_code] = await  myFetch(endpoint, "POST", new FormData(form));
 
         if (eval_status_code(status_code) ){
@@ -89,11 +92,14 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 localStorage.setItem("token", response["access"]);
                 window.location.replace("home");
             }else{
-                location.reload;
-                flash_message(response["message"], status_code);
-    
+                window.location.reload();
+                flash_message(response["message"], status_code); 
+               
             }
             
+        }else{
+            //window.location.reload();
+            flash_message("Invalid Credentials", 400);
         }
         
 
