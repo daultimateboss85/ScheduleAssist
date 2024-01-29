@@ -40,7 +40,12 @@ button{
 
 #topbar{
     background-color: var(--event-boxcolor);
-  
+    display:flex;
+    align-items: center;
+
+    button{
+        margin-left: auto;
+    }
 }
 
 #sidebar{
@@ -158,6 +163,7 @@ button{
     background-color: red;
     position: absolute;
     z-index: 25;
+    opacity: 50%;
 }
 .event-container{
     position: absolute;
@@ -430,11 +436,9 @@ textarea{
 
 @keyframes scaleIn{
     0%{
-        scale: 0;
         opacity: 0%;
     }
     100%{
-        scale: 1;
         opacity: 100%;
     }
 }

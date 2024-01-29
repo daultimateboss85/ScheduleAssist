@@ -401,6 +401,6 @@ class Register(APIView):
 
             return Response({"message": "Registration Successful"}, status=status.HTTP_201_CREATED)
         
-        except:
-            return Response({"message": "Registration Unsuccessful"}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"message": "Username taken already"}, status=status.HTTP_400_BAD_REQUEST)
             
