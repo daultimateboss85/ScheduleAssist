@@ -1,0 +1,17 @@
+*.git
+
+static
+
+.gitignore
+
+.scriptignore
+
+*.sqlite3
+
+*.md
+
+script.py
+
+__pycache__
+
+*.zip
