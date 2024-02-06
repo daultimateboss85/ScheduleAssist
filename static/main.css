@@ -194,6 +194,13 @@ button{
     cursor: default;
     z-index: 35;
 
+    input{
+        width: 94%;
+    }
+    textarea{
+        width: 94%;
+        resize: none;
+    }
     .container{
         padding: 3px;
         background-color: #D2D5DE;
@@ -204,7 +211,7 @@ button{
         
         .time{
             input{
-                width: 45%;
+                width: 47%;
             }
         }
         
@@ -223,10 +230,7 @@ button{
 
 
 
-textarea{
-    width: 90%;
-    resize: none;
-}
+
 
 
 .cal-container{
