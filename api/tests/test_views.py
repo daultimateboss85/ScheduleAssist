@@ -106,7 +106,7 @@ class ScheduleCalendarListViewTestCase(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["name"], "Gym Calendar")
+        self.assertEqual(response.data["object"]["name"], "Gym Calendar")
         self.assertEqual(user.schedule_cals.all().count(), 4)
 
     def test_invalid_data(self):
@@ -194,7 +194,7 @@ class ScheduleCalendarItemViewTestCase(GenTest):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["name"], "Gym Calendar")
+        self.assertEqual(response.json()["object"]["name"], "Gym Calendar")
 
     def test_put_changing_name_invalid_data(self):
         """Ensure appropriate response is returned"""
@@ -220,7 +220,7 @@ class ScheduleCalendarItemViewTestCase(GenTest):
         response = self.client.delete(reverse("schedulecalendar-item", args=[cal_id]))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), {"Deleted": "true"})
+        self.assertEqual(response.json()["message"], "Calendar deleted")
 
 
 class ScheduleListView(GenTest):
