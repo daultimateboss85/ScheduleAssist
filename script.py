@@ -7,10 +7,7 @@ import re
 
 C: int = len(sys.argv)
 
-if C == 1:
-    print("Specify Path to Home directory of files to compress")
-    print("eg if this directory: python script.py .")
-    
+if C == 1:    
     path: str = "."
 
 elif C == 2:
