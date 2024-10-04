@@ -730,7 +730,7 @@ function display_schedule_options(event, schedule){
         to_side.classList.add("to-side", "animate");
 
         //conditionally rendering to_side
-        if (event.x > window.innerWidth *3/4){
+        if (event.x > window.innerWidth * 3/4 ){
             to_side.style.right = "105%";
             to_side.classList.add("scaleInRight");
         }else{
